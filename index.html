@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>内容增长引擎 · Max 版（含自进化闭环）</title>
+<title>达人雷达 · 增长引擎(Max 版)</title>
 <style>
   :root{
     --bg:#0a0f1e; --panel:#111a2e; --panel2:#0e1626; --line:#20304d;
@@ -15,8 +15,9 @@
   .app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
   /* sidebar */
   .sidebar{border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#0d1526,#0a1020)}
-  .brand{font-weight:800;font-size:16px;letter-spacing:.5px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
-  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:var(--glow)}
+  .brand{font-weight:800;font-size:16px;letter-spacing:.5px;margin-bottom:4px}
+  .brand .row1{display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:var(--glow);flex:none}
   .brand small{display:block;color:var(--dim2);font-weight:500;font-size:11px;margin-top:3px;letter-spacing:0}
   .nav{margin-top:18px;display:flex;flex-direction:column;gap:2px}
   .nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;color:var(--dim);font-weight:600;font-size:13px}
@@ -42,12 +43,14 @@
   .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--dim)}
   .pill.hot{color:var(--gold);border-color:rgba(245,182,78,.4)}
   .pill.acq{color:var(--cyan);border-color:rgba(55,224,230,.4)}
-  .pill.side{color:var(--violet);border-color:rgba(155,140,255,.4)}
+  .pill.vio{color:var(--violet);border-color:rgba(155,140,255,.4)}
   .pill.fan{color:var(--blue);border-color:rgba(76,141,255,.4)}
+  .pill.ok{color:var(--green);border-color:rgba(57,217,138,.4)}
   .muted{color:var(--dim)}
   .small{font-size:12px}
+  .tablewrap{overflow-x:auto}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
   th{color:var(--dim2);font-weight:600;font-size:12px}
   .btn{all:unset;cursor:pointer;background:linear-gradient(90deg,var(--blue),var(--cyan));color:#04121f;font-weight:800;
     padding:9px 16px;border-radius:10px;font-size:13px;display:inline-flex;gap:7px;align-items:center}
@@ -58,51 +61,63 @@
   label{font-size:12px;color:var(--dim);display:block;margin:10px 0 4px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  /* avatar */
+  .ava{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--line);background:#0b1322;flex:none}
+  .ava.sm{width:22px;height:22px;vertical-align:middle;margin-right:7px}
   /* score card */
   .sc{border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:var(--panel2)}
   .sc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-  .sc .score{font-size:30px;font-weight:800;line-height:1}
+  .sc .top>div:first-child{min-width:0;flex:1;display:flex;gap:10px;align-items:flex-start}
+  .sc .score{font-size:28px;font-weight:800;line-height:1;flex:none}
   .sc .score small{font-size:12px;color:var(--dim);font-weight:600}
-  .sc .title{font-weight:700;font-size:15px;margin-bottom:2px}
+  .sc .title{font-weight:700;font-size:14px;margin-bottom:2px;overflow-wrap:anywhere}
   .reasons{margin-top:12px;display:flex;flex-direction:column;gap:5px}
-  .reason{display:flex;align-items:center;gap:8px;font-size:12px}
-  .reason .bar{height:6px;border-radius:4px;background:#1b2740;flex:1;overflow:hidden}
+  .reason{display:flex;align-items:center;gap:8px;font-size:11px}
+  .reason .bar{height:6px;border-radius:4px;background:#1b2740;flex:1;overflow:hidden;min-width:40px}
   .reason .bar i{display:block;height:100%;border-radius:4px}
-  .reason .v{width:52px;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
-  .reason .k{width:76px;color:var(--dim)}
+  .reason .v{width:98px;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums;flex:none}
+  .reason .k{width:70px;color:var(--dim);flex:none}
   .verdict{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:12px;color:var(--dim)}
-  .tag{font-size:11px;padding:2px 8px;border-radius:7px;background:#16233f;color:var(--dim);margin-left:6px}
+  .tag{font-size:11px;padding:2px 8px;border-radius:7px;background:#16233f;color:var(--dim)}
   /* loop wheel */
-  .wheel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+  .wheel{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
   .node{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;background:var(--panel2);position:relative}
   .node .e{font-size:20px} .node .t{font-weight:700;font-size:13px;margin-top:3px} .node .d{font-size:11px;color:var(--dim2)}
   .node.star{border-color:rgba(245,182,78,.5);box-shadow:0 0 22px rgba(245,182,78,.12)}
   .node.star .t{color:var(--gold)}
   /* calibration */
   .cal .weights{display:flex;flex-direction:column;gap:10px}
-  .wrow{display:grid;grid-template-columns:96px 1fr 120px;align-items:center;gap:10px}
+  .wrow{display:grid;grid-template-columns:96px 1fr 110px;align-items:center;gap:10px}
   .wbar{height:22px;background:#0b1322;border-radius:7px;overflow:hidden;position:relative}
   .wbar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan))}
   .wbar .old{position:absolute;top:0;bottom:0;border-right:2px dashed var(--gold);opacity:.9}
   .delta{font-variant-numeric:tabular-nums;font-size:12px}
   .maechart{display:flex;align-items:flex-end;gap:10px;height:120px;padding:8px 4px;border-bottom:1px solid var(--line)}
-  .maechart .b{width:34px;background:linear-gradient(180deg,var(--cyan),var(--blue));border-radius:6px 6px 0 0;position:relative}
+  .maechart .b{width:44px;background:linear-gradient(180deg,var(--cyan),var(--blue));border-radius:6px 6px 0 0;position:relative}
   .maechart .b span{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--dim)}
   .maechart .b em{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--dim2);font-style:normal;white-space:nowrap}
   .note{background:rgba(76,141,255,.08);border:1px solid rgba(76,141,255,.25);border-radius:10px;padding:11px 13px;font-size:12px;color:#bcd0f5;margin-top:14px}
   .warn{background:rgba(245,182,78,.08);border-color:rgba(245,182,78,.3);color:#f3d9a6}
-  .stub{border:1px dashed var(--line);border-radius:14px;padding:24px;text-align:center;color:var(--dim)}
   .flash{animation:fl .8s ease}@keyframes fl{0%{background:rgba(55,224,230,.15)}100%{background:transparent}}
   code{background:#0b1322;padding:1px 6px;border-radius:5px;color:var(--cyan);font-size:12px}
+  /* responsive */
+  @media(max-width:1100px){.grid3{grid-template-columns:1fr 1fr}.wheel{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:860px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+    .grid2,.grid3{grid-template-columns:1fr}
+    .kpis{grid-template-columns:1fr 1fr}
+    .main{padding:20px 16px 50px}
+  }
 </style>
 
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><span class="dot"></span>内容增长引擎
-      <small>Max 版 · 复刻 + 补全自进化闭环</small></div>
+    <div class="brand"><div class="row1"><span class="dot"></span>达人雷达</div>
+      <small>影石命题 Demo · Max 版<br>白盒打分 + 真·自进化</small></div>
     <nav class="nav" id="nav"></nav>
     <div class="demoflag">
-      <b>DEMO 模式</b><br>内容侧=种子样本;<br>🎯达人雷达=真实回测数据。<br>真交付走官方 API,非 cookie。
+      <b>真数据</b><br>1,106 频道 = 7/6-7/7 真实回测。<br>真交付走官方 API,非 cookie。
     </div>
   </aside>
   <main class="main" id="view"></main>
@@ -110,170 +125,110 @@
 
 <script>
 /* ============================================================
-   内容增长引擎 · Max 版  (single-file, 零依赖)
-   目的:1) 复刻 engine.zcchr.com 的 dashboard 工作流
-        2) 把作者吹了但没写的「自进化闭环」真的做出来
-   打分引擎是白盒可解释的,同一套可切换 topic(选题) / creator(达人) 两种对象
+   达人雷达 · 增长引擎 (single-file, 零依赖)
+   工作流学自 engine.zcchr.com(飞书 AI 绝活大会),只取对影石命题
+   有用的两环:数据回流 + 自进化,并把自进化做成可运行的。
+   数据 = 2026-07-06/07 首轮盲测回测(1,106 个真实 YouTube 频道)。
    ============================================================ */
 
-/* ---------- 人设(persona):决定所有打分口径 ---------- */
-const persona = {
-  name:"AI 车间主任(示例人设)",
-  who:"一个碳基员工管一支 AI 车间,做 AI×独立开发内容",
-  keywords:["AI工具","独立开发","Agent","Vibe Coding","效率"]
-};
-
-/* ---------- 打分维度 + 权重(会被自进化校准改动) ---------- */
-const DIMS = [
-  {k:"hot",  name:"热度",   desc:"当下流量大小"},
-  {k:"rel",  name:"相关性", desc:"跟人设赛道契合"},
-  {k:"acq",  name:"获客值", desc:"能不能带来精准粉/客"},
-  {k:"time", name:"时效",   desc:"新鲜度/窗口期"},
-  {k:"diff", name:"差异化", desc:"你能给出别人没有的角度"},
-];
-/* 新手直觉权重:热度给最高(常见误区)。校准后会自己纠偏。 */
-let weights = {hot:35, rel:25, acq:20, time:10, diff:10};
-const weights0 = {...weights};           // 初始权重,用于对照
-
-/* ---------- 今日选题池(每条带 5 维原始分 0-100 + 分层) ---------- */
-const TIERS = {acq:["精准获客","acq"], side:["沾边引流","side"], fan:["涨粉热点","fan"]};
-const topics = [
-  {t:"用一个周末把飞书多维表格接上任意大模型",tier:"acq", src:"抖音热榜#2 派生",
-   dim:{hot:62, rel:95, acq:90, time:70, diff:80}, hook:"手把手,可复现,直接引来同赛道精准粉"},
-  {t:"我把选题这件事整个交给了 AI,结果…",tier:"acq", src:"经历选题",
-   dim:{hot:40, rel:92, acq:85, time:55, diff:88}, hook:"真实经历,别人抄不走"},
-  {t:"AI 剪辑到底怎么做的?拆一条爆款给你看",tier:"side", src:"对标博主派生",
-   dim:{hot:78, rel:70, acq:55, time:75, diff:60}, hook:"蹭 AI 剪辑热度,沾边引流"},
-  {t:"世界人工智能大会,一个独立开发者的逛展攻略",tier:"side", src:"抖音热榜#2",
-   dim:{hot:92, rel:60, acq:45, time:95, diff:40}, hook:"纯蹭大热点,涨泛粉"},
-  {t:"残血版 iPhone?用一条 AI 快捷指令救回来",tier:"fan", src:"微博热搜#21",
-   dim:{hot:74, rel:48, acq:30, time:80, diff:45}, hook:"热点桥接,标题党涨粉"},
-];
-
-/* ---------- 已发布作品:发布前【预判】 vs 发布后【实测】 ----------
-   这是「自进化闭环」的燃料。每条记录发布当时 5 维分(预判)+3天后真实表现(实测0-100)。
-   数据被特意设计成:相关性/差异化 与真实表现强相关,热度几乎不相关
-   → 校准会把权重从「热度」搬到「相关性/差异化」,这就是系统学到的东西。 */
-const posts = [
-  {t:"从零搭一个 AI 选题机器人",         dim:{hot:45,rel:92,acq:88,time:60,diff:85}, actual:86},
-  {t:"我的 AI 车间一天产出 6 条内容",     dim:{hot:38,rel:90,acq:80,time:50,diff:90}, actual:88},
-  {t:"蹭世界 AI 大会热度做了条泛科普",     dim:{hot:95,rel:55,acq:35,time:92,diff:35}, actual:41},
-  {t:"AI 快捷指令救活旧 iPhone",          dim:{hot:80,rel:50,acq:32,time:85,diff:42}, actual:47},
-  {t:"把飞书表格变成 AI 批量工作台",       dim:{hot:52,rel:94,acq:86,time:66,diff:78}, actual:82},
-  {t:"独立开发者怎么用 Agent 省一个人",    dim:{hot:44,rel:91,acq:84,time:55,diff:82}, actual:84},
-  {t:"追了个娱乐热点硬蹭 AI",             dim:{hot:90,rel:35,acq:22,time:88,diff:30}, actual:33},
-  {t:"我踩过的 3 个 Vibe Coding 大坑",     dim:{hot:40,rel:88,acq:75,time:48,diff:86}, actual:80},
-  {t:"AI 剪辑保姆级教程",                 dim:{hot:76,rel:66,acq:52,time:74,diff:58}, actual:60},
-  {t:"热搜第一,我用它引流到独立产品",      dim:{hot:93,rel:58,acq:48,time:90,diff:44}, actual:52},
-  {t:"一个人跑通内容生产流水线",           dim:{hot:42,rel:93,acq:82,time:52,diff:88}, actual:87},
-  {t:"纯追星蹭流量的一条(翻车)",          dim:{hot:88,rel:30,acq:18,time:84,diff:25}, actual:28},
-];
-
-/* ---------- 达人雷达:真实回测数据(非种子样本) ----------
-   来源:2026-07-06/07 首轮盲测回测,池子 1,106 个全球摩托/骑行 YouTube 频道,
-   26 个已验证影石合作达人当标准答案(打分时隐藏,防标签泄漏)。
-   打分公式(零样本,手工权重):总分 = 语义匹配×70% + 中腰部甜点×18% + POV标记×12%
-   完整数据:~/Documents/creator-radar/data/runs/2026-07-07-official-v1.2/backtest_scores.json
-   这里嵌入 前20名 + 全部26个正例,共46条。 */
+/* ---------- 打分三信号(回测 v1.2 口径,权重手工设定) ---------- */
 const RDIMS=[
   {k:"sem",  name:"语义匹配",   w:70, desc:"内容像不像影石逆向出的 8 主题"},
   {k:"sweet",name:"中腰部甜点", w:18, desc:"订阅数落在「下一个」区间(峰值≈8万粉)"},
   {k:"pov",  name:"POV 原生",   w:12, desc:"第一视角拍摄标记(pov/onboard/helmet cam)"},
 ];
-const RADAR = [
-  {n:"Murtanio",url:"https://www.youtube.com/channel/UC9jWcAMlUtBXdJytn6W0Scg",subs:178000,sem:0.553,sweet:0.951,pov:1.00,score:0.678,rank:1,pct:0.1,pos:false,src:""},
-  {n:"THE SHAIKH 96",url:"https://www.youtube.com/channel/UCw6bOfgGZ_ty6s--KqYhGcQ",subs:79500,sem:0.517,sweet:1.000,pov:1.00,score:0.662,rank:2,pct:0.2,pos:false,src:""},
-  {n:"Schaaf",url:"https://www.youtube.com/channel/UCqsNMYqStWMt3XxkQHQx6Ww",subs:217000,sem:0.534,sweet:0.924,pov:1.00,score:0.660,rank:3,pct:0.3,pos:false,src:""},
-  {n:"STR1KEStudioz",url:"https://www.youtube.com/channel/UCyHbxqcKbiijjmfL8e2io9w",subs:32900,sem:0.514,sweet:0.941,pov:1.00,score:0.649,rank:4,pct:0.4,pos:false,src:""},
-  {n:"RevLimits",url:"https://www.youtube.com/channel/UCZLBtPp0XzZZNDECYpi5n_A",subs:149000,sem:0.498,sweet:0.970,pov:1.00,score:0.643,rank:5,pct:0.5,pos:false,src:""},
-  {n:"RUSH_ in Tokyo",url:"https://www.youtube.com/channel/UCSQRinrAfYYWyzRQqAzkfxw",subs:20500,sem:0.518,sweet:0.867,pov:1.00,score:0.639,rank:6,pct:0.5,pos:false,src:""},
-  {n:"MOTO WILD",url:"https://www.youtube.com/channel/UCXslS997yoJ1w9ZZTCh0Img",subs:376000,sem:0.522,sweet:0.828,pov:1.00,score:0.635,rank:7,pct:0.6,pos:false,src:""},
-  {n:"BRAAAPP - ONLY",url:"https://www.youtube.com/channel/UCN-IlOBZeArDM-nBVyPtvNw",subs:13600,sem:0.529,sweet:0.784,pov:1.00,score:0.631,rank:8,pct:0.7,pos:false,src:""},
-  {n:"Kzrunner",url:"https://www.youtube.com/channel/UCxnQJLuKHZnUhvFMP3t_MHQ",subs:23100,sem:0.488,sweet:0.888,pov:1.00,score:0.622,rank:9,pct:0.8,pos:false,src:""},
-  {n:"Tina Cohen O'Brien",url:"https://www.youtube.com/channel/UCcQChyJQNwr5kfPcrDLhwzw",subs:73000,sem:0.513,sweet:0.999,pov:0.67,score:0.619,rank:10,pct:0.9,pos:true,src:"star"},
-  {n:"CoffeeHouseRiders",url:"https://www.youtube.com/channel/UCnQ5iWZ3sMe7vpcO4wjiWCw",subs:20200,sem:0.485,sweet:0.864,pov:1.00,score:0.615,rank:11,pct:1.0,pos:false,src:""},
-  {n:"The Rice Rocketeer",url:"https://www.youtube.com/channel/UCqiKOOgk06TwHtFsk-F88RQ",subs:5760,sem:0.550,sweet:0.585,pov:1.00,score:0.610,rank:12,pct:1.1,pos:false,src:""},
-  {n:"Scrambler POV",url:"https://www.youtube.com/channel/UCGqdR-kobDziIGQYEZSk_Yg",subs:83400,sem:0.557,sweet:1.000,pov:0.33,score:0.610,rank:13,pct:1.2,pos:false,src:""},
-  {n:"GoPro Bike",url:"https://www.youtube.com/channel/UC-oqtSrbAwCIB98RZfsdreA",subs:81000,sem:0.495,sweet:1.000,pov:0.67,score:0.607,rank:14,pct:1.3,pos:false,src:""},
-  {n:"MotoVibes",url:"https://www.youtube.com/channel/UCfSlXpEv-KFD3l4ukU6bjcw",subs:34200,sem:0.562,sweet:0.946,pov:0.33,score:0.604,rank:15,pct:1.4,pos:false,src:""},
-  {n:"Rizzylifts",url:"https://www.youtube.com/channel/UCtFtVJhyltnk7hDXbqJ1n4w",subs:6550,sem:0.532,sweet:0.616,pov:1.00,score:0.603,rank:16,pct:1.4,pos:false,src:""},
-  {n:"SAWAAR",url:"https://www.youtube.com/channel/UCz66gPGDSESGnH2yY8yfi6g",subs:12000,sem:0.491,sweet:0.757,pov:1.00,score:0.600,rank:17,pct:1.5,pos:false,src:""},
-  {n:"TeapotOne",url:"https://www.youtube.com/channel/UC-K3Lg-53uExolDVo6ae8FA",subs:103000,sem:0.534,sweet:0.995,pov:0.33,score:0.593,rank:18,pct:1.6,pos:false,src:""},
-  {n:"Visordown Motorcycle Videos",url:"https://www.youtube.com/channel/UC0bafpdiKV8_NwecMfOtbtg",subs:161000,sem:0.543,sweet:0.962,pov:0.33,score:0.593,rank:19,pct:1.7,pos:false,src:""},
-  {n:"Kris Panji",url:"https://www.youtube.com/channel/UCW8VJPzJgc4_QCGozT-tDbw",subs:29800,sem:0.486,sweet:0.928,pov:0.67,score:0.587,rank:20,pct:1.8,pos:false,src:""},
-  {n:"Motorcycle Travel Channel",url:"https://www.youtube.com/channel/UCtHv1zzGSawcksbm7Vj3w6w",subs:95000,sem:0.580,sweet:0.998,pov:0.00,score:0.586,rank:21,pct:1.9,pos:false,src:""},
-  {n:"Lali",url:"https://www.youtube.com/channel/UC4JVGT1KzGz2XsoI1FQJPNA",subs:114000,sem:0.523,sweet:0.990,pov:0.33,score:0.585,rank:22,pct:2.0,pos:true,src:"midtail"},
-  {n:"RideWithRea",url:"https://www.youtube.com/channel/UCbX0sWFuyS7jSB4nx3E9Sdw",subs:26100,sem:0.534,sweet:0.908,pov:0.33,score:0.577,rank:28,pct:2.5,pos:true,src:"midtail"},
-  {n:"Moto Feelz",url:"https://www.youtube.com/channel/UCkWpBTLZjOnnXq9GF0xl96A",subs:126000,sem:0.548,sweet:0.984,pov:0.00,score:0.561,rank:48,pct:4.3,pos:true,src:"midtail"},
-  {n:"Luis Gerstner",url:"https://www.youtube.com/channel/UCvJ8y57rXJB79SZiEprDtYQ",subs:38900,sem:0.495,sweet:0.961,pov:0.33,score:0.559,rank:49,pct:4.4,pos:true,src:"star"},
-  {n:"Jay Jankulovski",url:"https://www.youtube.com/channel/UC76FdRjoBXibky_VC6ycroQ",subs:101000,sem:0.541,sweet:0.996,pov:0.00,score:0.558,rank:53,pct:4.8,pos:true,src:"midtail"},
-  {n:"Two Wheel Cruise",url:"https://www.youtube.com/channel/UClvtLAnUD8z_9dec6iUc24Q",subs:101000,sem:0.523,sweet:0.996,pov:0.00,score:0.545,rank:80,pct:7.2,pos:true,src:"midtail"},
-  {n:"Ride-Along Sessions with Cookie!",url:"https://www.youtube.com/channel/UCdyaiQll4OeQNQKyErJviig",subs:31100,sem:0.525,sweet:0.934,pov:0.00,score:0.536,rank:124,pct:11.2,pos:true,src:"midtail"},
-  {n:"The Bag o' Tricks",url:"https://www.youtube.com/channel/UCaEXnwWYRc5ph2QqQQviWlA",subs:52400,sem:0.504,sweet:0.987,pov:0.00,score:0.531,rank:148,pct:13.4,pos:true,src:"midtail"},
-  {n:"JORDAN HETRICK",url:"https://www.youtube.com/channel/UCaLCRvvau4acqQ4eLGZUywA",subs:249000,sem:0.518,sweet:0.903,pov:0.00,score:0.525,rank:187,pct:16.9,pos:true,src:"midtail"},
-  {n:"Nacho",url:"https://www.youtube.com/channel/UCH0oI7KNtjyVLOIiNFcHUjQ",subs:55300,sem:0.491,sweet:0.990,pov:0.00,score:0.522,rank:212,pct:19.2,pos:true,src:"midtail"},
-  {n:"Musdaque Chowdhury",url:"https://www.youtube.com/channel/UC-c-10cZZG3Jw45giIK20wg",subs:134000,sem:0.481,sweet:0.979,pov:0.00,score:0.513,rank:274,pct:24.8,pos:true,src:"midtail"},
-  {n:"stan the moto man",url:"https://www.youtube.com/channel/UCWOzw7exTtp1M5P60KXONyQ",subs:591000,sem:0.541,sweet:0.731,pov:0.00,score:0.510,rank:300,pct:27.1,pos:true,src:"midtail"},
-  {n:"The Loam Ranger",url:"https://www.youtube.com/channel/UCxwhnYiocArg7UCFFmnhQ7Q",subs:469000,sem:0.526,sweet:0.782,pov:0.00,score:0.509,rank:314,pct:28.4,pos:true,src:"midtail"},
-  {n:"MountMedia",url:"https://www.youtube.com/channel/UC_Nql0AlGzl7dSAuTqBUPEA",subs:209000,sem:0.484,sweet:0.930,pov:0.00,score:0.506,rank:338,pct:30.6,pos:true,src:"midtail"},
-  {n:"Robin Hannevig",url:"https://www.youtube.com/channel/UC8w-j3Xeky3yRIJv-Ast9GQ",subs:15800,sem:0.510,sweet:0.816,pov:0.00,score:0.504,rank:354,pct:32.0,pos:true,src:"midtail"},
-  {n:"Katie Kookaburra",url:"https://www.youtube.com/channel/UCCzN8KWKew4fp-AWIuE7E8A",subs:140000,sem:0.460,sweet:0.975,pov:0.00,score:0.498,rank:390,pct:35.3,pos:true,src:"midtail"},
-  {n:"Rest Day Rider",url:"https://www.youtube.com/channel/UCcnm0AXgd6qUx7GaCltQLBA",subs:19400,sem:0.468,sweet:0.857,pov:0.00,score:0.481,rank:507,pct:45.8,pos:true,src:"midtail"},
-  {n:"Dale Stone",url:"https://www.youtube.com/channel/UCdIZHBeg8wQLrdGiPXDqeEw",subs:309000,sem:0.460,sweet:0.866,pov:0.00,score:0.478,rank:527,pct:47.6,pos:true,src:"midtail"},
-  {n:"Chaseontwowheels",url:"https://www.youtube.com/channel/UCidMMQafCAomjuD_a3DcdHw",subs:1250000,sem:0.530,sweet:0.553,pov:0.00,score:0.470,rank:576,pct:52.1,pos:true,src:"midtail"},
-  {n:"Joseph Activate",url:"https://www.youtube.com/channel/UCtq1CGQI2q_sksplCwCwBVw",subs:17000,sem:0.453,sweet:0.831,pov:0.00,score:0.467,rank:604,pct:54.6,pos:true,src:"midtail"},
-  {n:"Evans MTB Saga",url:"https://www.youtube.com/channel/UCw_kNtS7ilDDoEEBX4bHVgw",subs:233000,sem:0.427,sweet:0.914,pov:0.00,score:0.463,rank:625,pct:56.5,pos:true,src:"midtail"},
-  {n:"Anne Gumiran",url:"https://www.youtube.com/channel/UCboz-ihnixi83znSsqoJOmw",subs:1540,sem:0.472,sweet:0.298,pov:0.00,score:0.384,rank:922,pct:83.4,pos:true,src:"star"},
-  {n:"Peter McKinnon",url:"https://www.youtube.com/channel/UC3DkFux8Iv-aYnTRWzwaiBA",subs:6010000,sem:0.475,sweet:0.233,pov:0.00,score:0.374,rank:950,pct:85.9,pos:true,src:"star"},
-  {n:"Fabio Wibmer",url:"https://www.youtube.com/channel/UCHOtaAJCOBDUWIcL4372D9A",subs:8040000,sem:0.446,sweet:0.190,pov:0.00,score:0.346,rank:1028,pct:92.9,pos:true,src:"star"},
-  {n:"CaseyNeistat",url:"https://www.youtube.com/channel/UCtinbF-Q-fVthA0qrFQTgXQ",subs:12700000,sem:0.380,sweet:0.134,pov:0.00,score:0.290,rank:1097,pct:99.2,pos:true,src:"star"}
+
+/* ---------- 展示用:前20名 + 全部26个已验证合作正例 ---------- */
+const RADAR=[
+{n:"Murtanio",url:"https://www.youtube.com/channel/UC9jWcAMlUtBXdJytn6W0Scg",subs:178000,sem:0.553,sweet:0.951,pov:1.00,score:0.678,rank:1,pct:0.1,pos:false,src:""},
+{n:"THE SHAIKH 96",url:"https://www.youtube.com/channel/UCw6bOfgGZ_ty6s--KqYhGcQ",subs:79500,sem:0.517,sweet:1.000,pov:1.00,score:0.662,rank:2,pct:0.2,pos:false,src:""},
+{n:"Schaaf",url:"https://www.youtube.com/channel/UCqsNMYqStWMt3XxkQHQx6Ww",subs:217000,sem:0.534,sweet:0.924,pov:1.00,score:0.660,rank:3,pct:0.3,pos:false,src:""},
+{n:"STR1KEStudioz",url:"https://www.youtube.com/channel/UCyHbxqcKbiijjmfL8e2io9w",subs:32900,sem:0.514,sweet:0.941,pov:1.00,score:0.649,rank:4,pct:0.4,pos:false,src:""},
+{n:"RevLimits",url:"https://www.youtube.com/channel/UCZLBtPp0XzZZNDECYpi5n_A",subs:149000,sem:0.498,sweet:0.970,pov:1.00,score:0.643,rank:5,pct:0.5,pos:false,src:""},
+{n:"RUSH_ in Tokyo",url:"https://www.youtube.com/channel/UCSQRinrAfYYWyzRQqAzkfxw",subs:20500,sem:0.518,sweet:0.867,pov:1.00,score:0.639,rank:6,pct:0.5,pos:false,src:""},
+{n:"MOTO WILD",url:"https://www.youtube.com/channel/UCXslS997yoJ1w9ZZTCh0Img",subs:376000,sem:0.522,sweet:0.828,pov:1.00,score:0.635,rank:7,pct:0.6,pos:false,src:""},
+{n:"BRAAAPP - ONLY",url:"https://www.youtube.com/channel/UCN-IlOBZeArDM-nBVyPtvNw",subs:13600,sem:0.529,sweet:0.784,pov:1.00,score:0.631,rank:8,pct:0.7,pos:false,src:""},
+{n:"Kzrunner",url:"https://www.youtube.com/channel/UCxnQJLuKHZnUhvFMP3t_MHQ",subs:23100,sem:0.488,sweet:0.888,pov:1.00,score:0.622,rank:9,pct:0.8,pos:false,src:""},
+{n:"Tina Cohen O'Brien",url:"https://www.youtube.com/channel/UCcQChyJQNwr5kfPcrDLhwzw",subs:73000,sem:0.513,sweet:0.999,pov:0.67,score:0.619,rank:10,pct:0.9,pos:true,src:"star"},
+{n:"CoffeeHouseRiders",url:"https://www.youtube.com/channel/UCnQ5iWZ3sMe7vpcO4wjiWCw",subs:20200,sem:0.485,sweet:0.864,pov:1.00,score:0.615,rank:11,pct:1.0,pos:false,src:""},
+{n:"The Rice Rocketeer",url:"https://www.youtube.com/channel/UCqiKOOgk06TwHtFsk-F88RQ",subs:5760,sem:0.550,sweet:0.585,pov:1.00,score:0.610,rank:12,pct:1.1,pos:false,src:""},
+{n:"Scrambler POV",url:"https://www.youtube.com/channel/UCGqdR-kobDziIGQYEZSk_Yg",subs:83400,sem:0.557,sweet:1.000,pov:0.33,score:0.610,rank:13,pct:1.2,pos:false,src:""},
+{n:"GoPro Bike",url:"https://www.youtube.com/channel/UC-oqtSrbAwCIB98RZfsdreA",subs:81000,sem:0.495,sweet:1.000,pov:0.67,score:0.607,rank:14,pct:1.3,pos:false,src:""},
+{n:"MotoVibes",url:"https://www.youtube.com/channel/UCfSlXpEv-KFD3l4ukU6bjcw",subs:34200,sem:0.562,sweet:0.946,pov:0.33,score:0.604,rank:15,pct:1.4,pos:false,src:""},
+{n:"Rizzylifts",url:"https://www.youtube.com/channel/UCtFtVJhyltnk7hDXbqJ1n4w",subs:6550,sem:0.532,sweet:0.616,pov:1.00,score:0.603,rank:16,pct:1.4,pos:false,src:""},
+{n:"SAWAAR",url:"https://www.youtube.com/channel/UCz66gPGDSESGnH2yY8yfi6g",subs:12000,sem:0.491,sweet:0.757,pov:1.00,score:0.600,rank:17,pct:1.5,pos:false,src:""},
+{n:"TeapotOne",url:"https://www.youtube.com/channel/UC-K3Lg-53uExolDVo6ae8FA",subs:103000,sem:0.534,sweet:0.995,pov:0.33,score:0.593,rank:18,pct:1.6,pos:false,src:""},
+{n:"Visordown Motorcycle Videos",url:"https://www.youtube.com/channel/UC0bafpdiKV8_NwecMfOtbtg",subs:161000,sem:0.543,sweet:0.962,pov:0.33,score:0.593,rank:19,pct:1.7,pos:false,src:""},
+{n:"Kris Panji",url:"https://www.youtube.com/channel/UCW8VJPzJgc4_QCGozT-tDbw",subs:29800,sem:0.486,sweet:0.928,pov:0.67,score:0.587,rank:20,pct:1.8,pos:false,src:""},
+{n:"Motorcycle Travel Channel",url:"https://www.youtube.com/channel/UCtHv1zzGSawcksbm7Vj3w6w",subs:95000,sem:0.580,sweet:0.998,pov:0.00,score:0.586,rank:21,pct:1.9,pos:false,src:""},
+{n:"Lali",url:"https://www.youtube.com/channel/UC4JVGT1KzGz2XsoI1FQJPNA",subs:114000,sem:0.523,sweet:0.990,pov:0.33,score:0.585,rank:22,pct:2.0,pos:true,src:"midtail"},
+{n:"RideWithRea",url:"https://www.youtube.com/channel/UCbX0sWFuyS7jSB4nx3E9Sdw",subs:26100,sem:0.534,sweet:0.908,pov:0.33,score:0.577,rank:28,pct:2.5,pos:true,src:"midtail"},
+{n:"Moto Feelz",url:"https://www.youtube.com/channel/UCkWpBTLZjOnnXq9GF0xl96A",subs:126000,sem:0.548,sweet:0.984,pov:0.00,score:0.561,rank:48,pct:4.3,pos:true,src:"midtail"},
+{n:"Luis Gerstner",url:"https://www.youtube.com/channel/UCvJ8y57rXJB79SZiEprDtYQ",subs:38900,sem:0.495,sweet:0.961,pov:0.33,score:0.559,rank:49,pct:4.4,pos:true,src:"star"},
+{n:"Jay Jankulovski",url:"https://www.youtube.com/channel/UC76FdRjoBXibky_VC6ycroQ",subs:101000,sem:0.541,sweet:0.996,pov:0.00,score:0.558,rank:53,pct:4.8,pos:true,src:"midtail"},
+{n:"Two Wheel Cruise",url:"https://www.youtube.com/channel/UClvtLAnUD8z_9dec6iUc24Q",subs:101000,sem:0.523,sweet:0.996,pov:0.00,score:0.545,rank:80,pct:7.2,pos:true,src:"midtail"},
+{n:"Ride-Along Sessions with Cookie!",url:"https://www.youtube.com/channel/UCdyaiQll4OeQNQKyErJviig",subs:31100,sem:0.525,sweet:0.934,pov:0.00,score:0.536,rank:124,pct:11.2,pos:true,src:"midtail"},
+{n:"The Bag o' Tricks",url:"https://www.youtube.com/channel/UCaEXnwWYRc5ph2QqQQviWlA",subs:52400,sem:0.504,sweet:0.987,pov:0.00,score:0.531,rank:148,pct:13.4,pos:true,src:"midtail"},
+{n:"JORDAN HETRICK",url:"https://www.youtube.com/channel/UCaLCRvvau4acqQ4eLGZUywA",subs:249000,sem:0.518,sweet:0.903,pov:0.00,score:0.525,rank:187,pct:16.9,pos:true,src:"midtail"},
+{n:"Nacho",url:"https://www.youtube.com/channel/UCH0oI7KNtjyVLOIiNFcHUjQ",subs:55300,sem:0.491,sweet:0.990,pov:0.00,score:0.522,rank:212,pct:19.2,pos:true,src:"midtail"},
+{n:"Musdaque Chowdhury",url:"https://www.youtube.com/channel/UC-c-10cZZG3Jw45giIK20wg",subs:134000,sem:0.481,sweet:0.979,pov:0.00,score:0.513,rank:274,pct:24.8,pos:true,src:"midtail"},
+{n:"stan the moto man",url:"https://www.youtube.com/channel/UCWOzw7exTtp1M5P60KXONyQ",subs:591000,sem:0.541,sweet:0.731,pov:0.00,score:0.510,rank:300,pct:27.1,pos:true,src:"midtail"},
+{n:"The Loam Ranger",url:"https://www.youtube.com/channel/UCxwhnYiocArg7UCFFmnhQ7Q",subs:469000,sem:0.526,sweet:0.782,pov:0.00,score:0.509,rank:314,pct:28.4,pos:true,src:"midtail"},
+{n:"MountMedia",url:"https://www.youtube.com/channel/UC_Nql0AlGzl7dSAuTqBUPEA",subs:209000,sem:0.484,sweet:0.930,pov:0.00,score:0.506,rank:338,pct:30.6,pos:true,src:"midtail"},
+{n:"Robin Hannevig",url:"https://www.youtube.com/channel/UC8w-j3Xeky3yRIJv-Ast9GQ",subs:15800,sem:0.510,sweet:0.816,pov:0.00,score:0.504,rank:354,pct:32.0,pos:true,src:"midtail"},
+{n:"Katie Kookaburra",url:"https://www.youtube.com/channel/UCCzN8KWKew4fp-AWIuE7E8A",subs:140000,sem:0.460,sweet:0.975,pov:0.00,score:0.498,rank:390,pct:35.3,pos:true,src:"midtail"},
+{n:"Rest Day Rider",url:"https://www.youtube.com/channel/UCcnm0AXgd6qUx7GaCltQLBA",subs:19400,sem:0.468,sweet:0.857,pov:0.00,score:0.481,rank:507,pct:45.8,pos:true,src:"midtail"},
+{n:"Dale Stone",url:"https://www.youtube.com/channel/UCdIZHBeg8wQLrdGiPXDqeEw",subs:309000,sem:0.460,sweet:0.866,pov:0.00,score:0.478,rank:527,pct:47.6,pos:true,src:"midtail"},
+{n:"Chaseontwowheels",url:"https://www.youtube.com/channel/UCidMMQafCAomjuD_a3DcdHw",subs:1250000,sem:0.530,sweet:0.553,pov:0.00,score:0.470,rank:576,pct:52.1,pos:true,src:"midtail"},
+{n:"Joseph Activate",url:"https://www.youtube.com/channel/UCtq1CGQI2q_sksplCwCwBVw",subs:17000,sem:0.453,sweet:0.831,pov:0.00,score:0.467,rank:604,pct:54.6,pos:true,src:"midtail"},
+{n:"Evans MTB Saga",url:"https://www.youtube.com/channel/UCw_kNtS7ilDDoEEBX4bHVgw",subs:233000,sem:0.427,sweet:0.914,pov:0.00,score:0.463,rank:625,pct:56.5,pos:true,src:"midtail"},
+{n:"Anne Gumiran",url:"https://www.youtube.com/channel/UCboz-ihnixi83znSsqoJOmw",subs:1540,sem:0.472,sweet:0.298,pov:0.00,score:0.384,rank:922,pct:83.4,pos:true,src:"star"},
+{n:"Peter McKinnon",url:"https://www.youtube.com/channel/UC3DkFux8Iv-aYnTRWzwaiBA",subs:6010000,sem:0.475,sweet:0.233,pov:0.00,score:0.374,rank:950,pct:85.9,pos:true,src:"star"},
+{n:"Fabio Wibmer",url:"https://www.youtube.com/channel/UCHOtaAJCOBDUWIcL4372D9A",subs:8040000,sem:0.446,sweet:0.190,pov:0.00,score:0.346,rank:1028,pct:92.9,pos:true,src:"star"},
+{n:"CaseyNeistat",url:"https://www.youtube.com/channel/UCtinbF-Q-fVthA0qrFQTgXQ",subs:12700000,sem:0.380,sweet:0.134,pov:0.00,score:0.290,rank:1097,pct:99.2,pos:true,src:"star"}
 ];
 
-/* ================= 打分引擎(白盒,可解释) ================= */
-function scoreWith(dim, w){
-  const total = DIMS.reduce((s,d)=>s + dim[d.k]*(w[d.k]/100), 0);
-  const reasons = DIMS.map(d=>({
-    k:d.name, raw:dim[d.k], w:w[d.k],
-    contrib:+(dim[d.k]*(w[d.k]/100)).toFixed(1)
-  })).sort((a,b)=>b.contrib-a.contrib);
-  return {score:Math.round(total), reasons};
+/* ---------- 全池 1,106 条 [语义,甜点,POV,是否正例],自进化现场重算用 ---------- */
+const POOL=[[0.5533,0.9505,1.00,0],[0.5174,1.0000,1.00,0],[0.5341,0.9243,1.00,0],[0.5137,0.9412,1.00,0],[0.4978,0.9696,1.00,0],[0.5179,0.8668,1.00,0],[0.5223,0.8283,1.00,0],[0.5289,0.7845,1.00,0],[0.4883,0.8879,1.00,0],[0.5130,0.9994,0.67,1],[0.4849,0.8641,1.00,0],[0.5503,0.5847,1.00,0],[0.5570,0.9998,0.33,0],[0.4951,1.0000,0.67,0],[0.5622,0.9462,0.33,0],[0.5321,0.6155,1.00,0],[0.4915,0.7570,1.00,0],[0.5341,0.9948,0.33,0],[0.5426,0.9618,0.33,0],[0.4863,0.9278,0.67,0],[0.5801,0.9975,0.00,0],[0.5235,0.9899,0.33,1],[0.5789,0.9947,0.00,0],[0.5774,0.9976,0.00,0],[0.5369,0.7066,0.67,0],[0.4292,0.8944,1.00,0],[0.5717,0.9996,0.00,0],[0.5341,0.9080,0.33,1],[0.5296,0.9166,0.33,0],[0.5037,0.5626,1.00,0],[0.5655,0.9830,0.00,0],[0.5604,0.9936,0.00,0],[0.5875,0.8880,0.00,0],[0.5047,0.9879,0.33,0],[0.5682,0.9608,0.00,0],[0.5679,0.9618,0.00,0],[0.5659,0.9565,0.00,0],[0.5548,0.9844,0.00,0],[0.4571,0.6974,1.00,0],[0.5499,0.9996,0.00,0],[0.5503,0.9940,0.00,0],[0.5476,0.9985,0.00,0],[0.5677,0.9196,0.00,0],[0.5524,0.7532,0.33,0],[0.5610,0.7178,0.33,0],[0.5438,0.7844,0.33,0],[0.5325,0.3833,1.00,0],[0.5481,0.9835,0.00,1],[0.4950,0.9611,0.33,1],[0.5445,0.9889,0.00,0],[0.5424,0.9922,0.00,0],[0.5391,0.3365,1.00,0],[0.5408,0.9955,0.00,1],[0.5437,0.9807,0.00,0],[0.5402,0.9803,0.00,0],[0.5425,0.9700,0.00,0],[0.5316,0.9959,0.00,0],[0.5089,0.8613,0.33,0],[0.5342,0.9813,0.00,0],[0.5292,1.0000,0.00,0],[0.5285,0.9990,0.00,0],[0.5416,0.9472,0.00,0],[0.4727,0.9928,0.33,0],[0.5528,0.9004,0.00,0],[0.5286,0.9904,0.00,0],[0.5269,0.9962,0.00,0],[0.5349,0.9635,0.00,0],[0.5248,1.0000,0.00,0],[0.5268,0.9910,0.00,0],[0.5285,0.9830,0.00,0],[0.5255,0.9940,0.00,0],[0.5240,0.9996,0.00,0],[0.5239,0.9991,0.00,0],[0.4845,0.9283,0.33,0],[0.5235,0.9982,0.00,0],[0.5243,0.9942,0.00,0],[0.5246,0.9927,0.00,0],[0.5467,0.9049,0.00,0],[0.5664,0.8278,0.00,0],[0.5232,0.9955,0.00,1],[0.5029,0.8492,0.33,0],[0.5279,0.9738,0.00,0],[0.5212,0.9995,0.00,0],[0.5206,0.9999,0.00,0],[0.5244,0.9830,0.00,0],[0.5371,0.9330,0.00,0],[0.4805,0.9297,0.33,0],[0.5204,0.9948,0.00,0],[0.5287,0.9599,0.00,0],[0.5181,0.9974,0.00,0],[0.5372,0.9214,0.00,0],[0.4898,0.4390,1.00,0],[0.4896,0.8818,0.33,0],[0.5309,0.9432,0.00,0],[0.4592,0.9979,0.33,0],[0.5585,0.8294,0.00,0],[0.5146,0.9967,0.00,0],[0.5296,0.9371,0.00,0],[0.5171,0.9857,0.00,0],[0.5150,0.9922,0.00,0],[0.5191,0.9759,0.00,0],[0.5135,0.9977,0.00,0],[0.5240,0.9565,0.00,0],[0.5131,0.9988,0.00,0],[0.5246,0.9519,0.00,0],[0.5399,0.8915,0.00,0],[0.5377,0.6770,0.33,0],[0.5150,0.9868,0.00,0],[0.5434,0.8762,0.00,0],[0.5179,0.9747,0.00,0],[0.5147,0.9868,0.00,0],[0.5473,0.8590,0.00,0],[0.5433,0.8726,0.00,0],[0.5459,0.8613,0.00,0],[0.5144,0.9839,0.00,0],[0.5516,0.8378,0.00,0],[0.4846,0.6540,0.67,0],[0.5454,0.8613,0.00,0],[0.5167,0.9728,0.00,0],[0.5098,0.9985,0.00,0],[0.5282,0.9263,0.00,0],[0.5104,0.9927,0.00,0],[0.5096,0.9948,0.00,0],[0.5251,0.9338,0.00,1],[0.5090,0.9959,0.00,0],[0.5135,0.9770,0.00,0],[0.5223,0.9428,0.00,0],[0.5126,0.9771,0.00,0],[0.5236,0.2663,1.00,0],[0.5076,0.9935,0.00,0],[0.5141,0.9684,0.00,0],[0.5316,0.8984,0.00,0],[0.5277,0.9127,0.00,0],[0.5074,0.9915,0.00,0],[0.5332,0.6688,0.33,0],[0.5060,0.9968,0.00,0],[0.5083,0.9843,0.00,0],[0.5242,0.9216,0.00,0],[0.5058,0.9931,0.00,0],[0.5075,0.9841,0.00,0],[0.5222,0.9259,0.00,0],[0.5148,0.9533,0.00,0],[0.5143,0.9549,0.00,0],[0.5174,0.9424,0.00,0],[0.5643,0.3149,0.67,0],[0.5240,0.2485,1.00,0],[0.5450,0.8294,0.00,0],[0.5044,0.9866,0.00,1],[0.5096,0.9664,0.00,0],[0.5249,0.9055,0.00,0],[0.5064,0.9761,0.00,0],[0.5037,0.9863,0.00,0],[0.5249,0.2370,1.00,0],[0.5105,0.9597,0.00,0],[0.5008,0.9948,0.00,0],[0.5083,0.9621,0.00,0],[0.5255,0.8943,0.00,0],[0.5277,0.8855,0.00,0],[0.5079,0.9624,0.00,0],[0.5026,0.9830,0.00,0],[0.5007,0.9904,0.00,0],[0.5062,0.9684,0.00,0],[0.4995,0.9942,0.00,0],[0.5049,0.9728,0.00,0],[0.5104,0.9500,0.00,0],[0.4978,0.9977,0.00,0],[0.5179,0.9188,0.00,0],[0.5314,0.8643,0.00,0],[0.4992,0.9879,0.00,0],[0.4983,0.9904,0.00,0],[0.5027,0.9730,0.00,0],[0.5123,0.7126,0.33,0],[0.5402,0.8267,0.00,0],[0.4955,1.0000,0.00,0],[0.5089,0.9472,0.00,0],[0.4992,0.9847,0.00,0],[0.5077,0.9519,0.00,0],[0.5065,0.9552,0.00,0],[0.4963,0.9948,0.00,0],[0.5136,0.9270,0.00,0],[0.4967,0.9918,0.00,0],[0.5059,0.9561,0.00,0],[0.5104,0.9372,0.00,0],[0.5128,0.7049,0.33,0],[0.4938,0.9998,0.00,0],[0.4961,0.9908,0.00,0],[0.5184,0.9033,0.00,1],[0.5265,0.8711,0.00,0],[0.5109,0.9317,0.00,0],[0.4961,0.9882,0.00,0],[0.5039,0.9565,0.00,0],[0.5111,0.9283,0.00,0],[0.4952,0.9899,0.00,0],[0.5240,0.8778,0.00,0],[0.4945,0.9922,0.00,0],[0.5280,0.8602,0.00,0],[0.5337,0.8367,0.00,0],[0.5577,0.7428,0.00,0],[0.5160,0.9043,0.00,0],[0.5075,0.9371,0.00,0],[0.4951,0.9833,0.00,0],[0.5007,0.9605,0.00,0],[0.4946,0.9839,0.00,0],[0.4899,0.9997,0.00,0],[0.5230,0.8694,0.00,0],[0.5041,0.9424,0.00,0],[0.5088,0.9230,0.00,0],[0.4938,0.9811,0.00,0],[0.4889,0.9995,0.00,0],[0.4468,0.9397,0.33,0],[0.5071,0.9269,0.00,0],[0.4908,0.9898,0.00,1],[0.5210,0.8703,0.00,0],[0.4955,0.9690,0.00,0],[0.5129,0.8991,0.00,0],[0.5508,0.7513,0.00,0],[0.5387,0.5741,0.33,0],[0.5346,0.8122,0.00,0],[0.5069,0.9183,0.00,0],[0.4886,0.9881,0.00,0],[0.4852,1.0000,0.00,0],[0.4845,0.9996,0.00,0],[0.4683,0.8400,0.33,0],[0.4857,0.9944,0.00,0],[0.4865,0.9900,0.00,0],[0.4954,0.9552,0.00,0],[0.4470,0.9214,0.33,0],[0.4858,0.9922,0.00,0],[0.4852,0.9944,0.00,0],[0.4847,0.9960,0.00,0],[0.5099,0.8975,0.00,0],[0.4863,0.9879,0.00,0],[0.4951,0.9532,0.00,0],[0.4928,0.9618,0.00,0],[0.4934,0.9588,0.00,0],[0.4843,0.9937,0.00,0],[0.4894,0.9734,0.00,0],[0.5022,0.9229,0.00,0],[0.5820,0.6109,0.00,0],[0.4819,0.9996,0.00,0],[0.4819,0.9996,0.00,0],[0.5123,0.8805,0.00,0],[0.5553,0.7128,0.00,0],[0.5645,0.6762,0.00,0],[0.5023,0.9177,0.00,0],[0.4813,0.9993,0.00,0],[0.4893,0.9677,0.00,0],[0.5033,0.9124,0.00,0],[0.5023,0.9163,0.00,0],[0.5313,0.8011,0.00,0],[0.5137,0.8685,0.00,0],[0.5044,0.9043,0.00,0],[0.4910,0.9558,0.00,0],[0.4906,0.9572,0.00,0],[0.4908,0.9561,0.00,0],[0.4838,0.9827,0.00,0],[0.4819,0.9901,0.00,0],[0.4852,0.7552,0.33,0],[0.5018,0.9104,0.00,0],[0.5526,0.7120,0.00,0],[0.4891,0.9582,0.00,0],[0.4845,0.3093,1.00,0],[0.4791,0.9951,0.00,0],[0.5392,0.7607,0.00,0],[0.4776,0.9997,0.00,0],[0.5144,0.8555,0.00,0],[0.5159,0.8486,0.00,0],[0.4794,0.9904,0.00,0],[0.4813,0.9830,0.00,0],[0.5145,0.8526,0.00,0],[0.5159,0.8470,0.00,0],[0.5674,0.6460,0.00,0],[0.4927,0.9344,0.00,0],[0.4812,0.9789,0.00,1],[0.4816,0.9753,0.00,0],[0.4989,0.9072,0.00,0],[0.4816,0.9744,0.00,0],[0.5277,0.7952,0.00,0],[0.4899,0.9418,0.00,0],[0.4810,0.9765,0.00,0],[0.4807,0.9777,0.00,0],[0.4871,0.9524,0.00,0],[0.4902,0.9404,0.00,0],[0.4831,0.9677,0.00,0],[0.4793,0.9823,0.00,0],[0.4862,0.9549,0.00,0],[0.4748,0.9991,0.00,0],[0.4894,0.7201,0.33,0],[0.4946,0.9216,0.00,0],[0.4792,0.9813,0.00,0],[0.5576,0.0095,1.00,0],[0.5424,0.7325,0.00,0],[0.5520,0.0280,1.00,0],[0.5437,0.7246,0.00,0],[0.5246,0.7982,0.00,0],[0.5286,0.7813,0.00,0],[0.4957,0.9091,0.00,0],[0.4780,0.9781,0.00,0],[0.5149,0.8332,0.00,0],[0.5409,0.7306,0.00,1],[0.4798,0.9684,0.00,0],[0.5188,0.8162,0.00,0],[0.4940,0.9124,0.00,0],[0.5192,0.8137,0.00,0],[0.4730,0.9933,0.00,0],[0.4777,0.9740,0.00,0],[0.4752,0.9835,0.00,0],[0.4871,0.9364,0.00,0],[0.4814,0.9585,0.00,0],[0.4736,0.9884,0.00,0],[0.4843,0.9465,0.00,0],[0.4829,0.9519,0.00,0],[0.4984,0.8905,0.00,0],[0.5260,0.7821,0.00,1],[0.4984,0.8894,0.00,0],[0.4749,0.9801,0.00,0],[0.5641,0.4108,0.33,0],[0.4878,0.9290,0.00,0],[0.5115,0.8359,0.00,0],[0.4904,0.9177,0.00,0],[0.4837,0.9436,0.00,0],[0.4944,0.9020,0.00,0],[0.5047,0.8613,0.00,0],[0.4740,0.9801,0.00,0],[0.4689,0.9997,0.00,0],[0.5074,0.8485,0.00,0],[0.4838,0.9404,0.00,0],[0.4893,0.9183,0.00,0],[0.4715,0.9868,0.00,0],[0.4839,0.9384,0.00,0],[0.4749,0.9722,0.00,0],[0.4823,0.9401,0.00,0],[0.4919,0.9024,0.00,0],[0.4670,0.9995,0.00,0],[0.4681,0.9947,0.00,0],[0.4661,0.9999,0.00,0],[0.4747,0.9658,0.00,0],[0.4839,0.9297,0.00,1],[0.4743,0.9664,0.00,0],[0.4701,0.9818,0.00,0],[0.4965,0.4324,0.67,0],[0.4955,0.2137,1.00,0],[0.4656,0.9959,0.00,0],[0.4920,0.8930,0.00,0],[0.5101,0.8225,0.00,0],[0.5178,0.7922,0.00,0],[0.5125,0.8121,0.00,0],[0.4975,0.8703,0.00,0],[0.4706,0.9747,0.00,0],[0.4779,0.9458,0.00,0],[0.5005,0.8575,0.00,0],[0.5166,0.7907,0.00,0],[0.4735,0.9579,0.00,0],[0.5099,0.8161,0.00,1],[0.4682,0.9765,0.00,0],[0.4618,0.9951,0.00,0],[0.4632,0.9891,0.00,0],[0.4572,0.7891,0.33,0],[0.4775,0.9320,0.00,0],[0.5191,0.7695,0.00,0],[0.5398,0.6886,0.00,0],[0.5022,0.8337,0.00,0],[0.4684,0.9651,0.00,0],[0.5027,0.8315,0.00,0],[0.5469,0.4368,0.33,0],[0.4588,0.9998,0.00,0],[0.5161,0.7763,0.00,0],[0.5402,0.6814,0.00,0],[0.5059,0.8148,0.00,0],[0.5070,0.8094,0.00,0],[0.4584,0.9969,0.00,0],[0.5159,0.7730,0.00,0],[0.4644,0.9728,0.00,0],[0.5213,0.7513,0.00,0],[0.4625,0.9796,0.00,0],[0.4810,0.9072,0.00,0],[0.4689,0.9539,0.00,0],[0.5053,0.8116,0.00,0],[0.4872,0.8787,0.00,0],[0.4599,0.9835,0.00,0],[0.5181,0.7570,0.00,0],[0.4789,0.6871,0.33,0],[0.5154,0.7646,0.00,0],[0.4720,0.9330,0.00,0],[0.4702,0.9388,0.00,0],[0.4553,0.9956,0.00,0],[0.4793,0.9017,0.00,0],[0.4660,0.9532,0.00,0],[0.4930,0.8481,0.00,0],[0.4602,0.9753,0.00,1],[0.4820,0.6671,0.33,0],[0.5384,0.0027,1.00,0],[0.4863,0.8711,0.00,0],[0.4911,0.8506,0.00,0],[0.4630,0.9592,0.00,0],[0.4709,0.9276,0.00,0],[0.5423,0.6498,0.00,0],[0.5205,0.7345,0.00,0],[0.4586,0.9747,0.00,0],[0.5228,0.7246,0.00,0],[0.5377,0.6659,0.00,0],[0.4992,0.8152,0.00,0],[0.5166,0.7475,0.00,0],[0.4621,0.9592,0.00,0],[0.4838,0.8745,0.00,0],[0.5240,0.7170,0.00,0],[0.4819,0.8799,0.00,0],[0.4595,0.9664,0.00,0],[0.4994,0.8106,0.00,0],[0.5247,0.7115,0.00,0],[0.4844,0.8672,0.00,0],[0.4632,0.9492,0.00,0],[0.4764,0.8971,0.00,0],[0.4982,0.8122,0.00,0],[0.4759,0.8988,0.00,0],[0.4958,0.8212,0.00,0],[0.4741,0.9049,0.00,0],[0.5186,0.7311,0.00,0],[0.4621,0.9505,0.00,0],[0.5157,0.7415,0.00,0],[0.5001,0.8021,0.00,0],[0.5338,0.6711,0.00,0],[0.4866,0.8526,0.00,0],[0.5180,0.7294,0.00,0],[0.4512,0.9884,0.00,0],[0.5206,0.7178,0.00,0],[0.4820,0.8677,0.00,0],[0.4610,0.9490,0.00,0],[0.4525,0.9813,0.00,0],[0.4609,0.9462,0.00,0],[0.4870,0.8443,0.00,0],[0.4795,0.8702,0.00,0],[0.4951,0.8094,0.00,0],[0.4546,0.9664,0.00,0],[0.5139,0.7325,0.00,0],[0.4660,0.9166,0.00,0],[0.4766,0.8745,0.00,0],[0.4488,0.9813,0.00,0],[0.5411,0.6213,0.00,0],[0.5406,0.6230,0.00,0],[0.5206,0.6995,0.00,0],[0.5365,0.6368,0.00,0],[0.4891,0.8199,0.00,0],[0.5096,0.7388,0.00,0],[0.4578,0.9401,0.00,0],[0.5022,0.7660,0.00,0],[0.4681,0.8988,0.00,0],[0.5030,0.7625,0.00,0],[0.4548,0.9490,0.00,0],[0.5379,0.6255,0.00,0],[0.4623,0.9182,0.00,0],[0.4588,0.9310,0.00,0],[0.5063,0.7457,0.00,0],[0.5381,0.6202,0.00,0],[0.4879,0.8134,0.00,0],[0.4419,0.9924,0.00,0],[0.4403,0.9971,0.00,0],[0.4702,0.8805,0.00,0],[0.4725,0.8714,0.00,0],[0.4952,0.7829,0.00,0],[0.4990,0.7678,0.00,0],[0.4789,0.8453,0.00,0],[0.4504,0.9552,0.00,0],[0.4648,0.8991,0.00,0],[0.4895,0.8026,0.00,0],[0.4513,0.9510,0.00,0],[0.4581,0.9243,0.00,0],[0.4717,0.8696,0.00,0],[0.5318,0.6348,0.00,0],[0.4961,0.7730,0.00,0],[0.5079,0.7260,0.00,0],[0.4741,0.8567,0.00,0],[0.4420,0.9814,0.00,0],[0.4975,0.7638,0.00,0],[0.4800,0.8321,0.00,0],[0.4501,0.9476,0.00,0],[0.4862,0.8066,0.00,0],[0.4454,0.9642,0.00,0],[0.5053,0.7311,0.00,0],[0.5075,0.2781,0.67,0],[0.4681,0.8754,0.00,0],[0.4376,0.9934,0.00,0],[0.5263,0.6475,0.00,0],[0.5010,0.7455,0.00,0],[0.4708,0.8619,0.00,0],[0.4838,0.8108,0.00,0],[0.5484,0.5590,0.00,0],[0.4584,0.9085,0.00,0],[0.5164,0.6822,0.00,0],[0.4821,0.8152,0.00,0],[0.4762,0.8364,0.00,0],[0.5025,0.7332,0.00,0],[0.4762,0.8355,0.00,0],[0.4842,0.8039,0.00,0],[0.5062,0.4956,0.33,0],[0.5227,0.6507,0.00,0],[0.4589,0.8981,0.00,0],[0.4759,0.8315,0.00,0],[0.5418,0.5750,0.00,0],[0.4895,0.7780,0.00,0],[0.4792,0.8178,0.00,0],[0.4519,0.9216,0.00,0],[0.5232,0.1976,0.67,0],[0.4332,0.9920,0.00,0],[0.4396,0.9664,0.00,0],[0.4585,0.8923,0.00,0],[0.4676,0.8565,0.00,1],[0.4549,0.9043,0.00,0],[0.4881,0.7747,0.00,0],[0.4710,0.8403,0.00,0],[0.4636,0.8684,0.00,0],[0.4720,0.8344,0.00,0],[0.5142,0.6677,0.00,0],[0.4697,0.8400,0.00,0],[0.5313,0.5995,0.00,0],[0.4864,0.7739,0.00,0],[0.4932,0.7475,0.00,0],[0.4296,0.9939,0.00,0],[0.4431,0.9411,0.00,0],[0.4374,0.9608,0.00,0],[0.4911,0.7475,0.00,0],[0.4386,0.9512,0.00,0],[0.4955,0.7289,0.00,0],[0.4977,0.7201,0.00,0],[0.4288,0.9873,0.00,0],[0.5382,0.5612,0.00,0],[0.4598,0.8660,0.00,1],[0.4996,0.7112,0.00,0],[0.5121,0.6617,0.00,0],[0.4990,0.7120,0.00,0],[0.4558,0.8786,0.00,0],[0.4746,0.8053,0.00,0],[0.5062,0.6825,0.00,0],[0.4463,0.9149,0.00,0],[0.4352,0.9573,0.00,0],[0.5258,0.6046,0.00,0],[0.4393,0.9404,0.00,0],[0.4789,0.7860,0.00,0],[0.4740,0.8039,0.00,0],[0.4609,0.8549,0.00,0],[0.4550,0.8775,0.00,0],[0.4467,0.9091,0.00,0],[0.4241,0.9965,0.00,0],[0.4268,0.9858,0.00,0],[0.5204,0.6208,0.00,0],[0.5104,0.6592,0.00,0],[0.4499,0.8923,0.00,0],[0.5334,0.5670,0.00,0],[0.4374,0.9397,0.00,0],[0.5073,0.6677,0.00,0],[0.4549,0.8708,0.00,0],[0.5380,0.3238,0.33,0],[0.4214,0.9986,0.00,0],[0.5588,0.4639,0.00,0],[0.4855,0.7475,0.00,0],[0.4201,0.9996,0.00,0],[0.4968,0.6989,0.00,0],[0.5227,0.5984,0.00,0],[0.5618,0.0016,0.67,0],[0.4525,0.8696,0.00,0],[0.4188,0.9967,0.00,0],[0.5089,0.6457,0.00,0],[0.4936,0.7048,0.00,0],[0.4267,0.9645,0.00,0],[0.5111,0.6351,0.00,0],[0.4462,0.8872,0.00,0],[0.4650,0.8134,0.00,0],[0.4661,0.8067,0.00,0],[0.4241,0.9691,0.00,0],[0.5010,0.6696,0.00,0],[0.5015,0.6676,0.00,0],[0.4416,0.9004,0.00,0],[0.4857,0.7268,0.00,0],[0.4212,0.9771,0.00,0],[0.4808,0.7449,0.00,0],[0.5297,0.5532,0.00,1],[0.4818,0.7374,0.00,0],[0.4590,0.8256,0.00,0],[0.5316,0.5433,0.00,0],[0.4582,0.8278,0.00,0],[0.4496,0.8602,0.00,0],[0.5381,0.5159,0.00,0],[0.5189,0.5896,0.00,0],[0.5368,0.5197,0.00,0],[0.4785,0.7453,0.00,0],[0.5445,0.4881,0.00,0],[0.5086,0.6259,0.00,0],[0.4974,0.6693,0.00,0],[0.4585,0.8186,0.00,0],[0.4120,0.9993,0.00,0],[0.4946,0.6778,0.00,0],[0.5065,0.6307,0.00,0],[0.4303,0.9270,0.00,0],[0.5084,0.6230,0.00,0],[0.4618,0.8039,0.00,0],[0.4853,0.7125,0.00,0],[0.4479,0.8567,0.00,0],[0.4798,0.7302,0.00,0],[0.4308,0.9203,0.00,0],[0.4745,0.7494,0.00,0],[0.4717,0.7603,0.00,0],[0.4474,0.8536,0.00,0],[0.4474,0.8532,0.00,0],[0.4531,0.8309,0.00,1],[0.4203,0.9585,0.00,0],[0.4230,0.9472,0.00,0],[0.4774,0.7353,0.00,0],[0.5156,0.5859,0.00,0],[0.4975,0.6554,0.00,0],[0.4809,0.7181,0.00,0],[0.4511,0.8326,0.00,0],[0.4729,0.7473,0.00,0],[0.4934,0.0005,1.00,0],[0.4721,0.7498,0.00,0],[0.5199,0.5630,0.00,0],[0.5234,0.5491,0.00,0],[0.5157,0.5776,0.00,0],[0.4063,0.9988,0.00,0],[0.4578,0.7958,0.00,0],[0.5184,0.5590,0.00,0],[0.4296,0.9039,0.00,0],[0.4128,0.9690,0.00,0],[0.5133,0.3555,0.33,0],[0.5202,0.5500,0.00,0],[0.4266,0.9137,0.00,1],[0.4456,0.8389,0.00,0],[0.5148,0.5697,0.00,0],[0.4489,0.8237,0.00,0],[0.5461,0.0007,0.67,0],[0.5474,0.4390,0.00,0],[0.4249,0.9130,0.00,0],[0.4525,0.8053,0.00,0],[0.5264,0.5159,0.00,0],[0.5086,0.5843,0.00,0],[0.4387,0.8544,0.00,0],[0.4070,0.9777,0.00,0],[0.5016,0.6088,0.00,0],[0.5212,0.5323,0.00,0],[0.5027,0.6039,0.00,0],[0.4822,0.6792,0.00,0],[0.4203,0.9196,0.00,0],[0.4457,0.8209,0.00,0],[0.5073,0.5810,0.00,0],[0.4271,0.8905,0.00,0],[0.4647,0.7435,0.00,0],[0.4549,0.7813,0.00,0],[0.5099,0.5670,0.00,0],[0.4846,0.6656,0.00,0],[0.4005,0.9913,0.00,0],[0.4462,0.8132,0.00,0],[0.4598,0.7588,0.00,0],[0.4694,0.7211,0.00,0],[0.4274,0.8834,0.00,0],[0.4574,0.7646,0.00,0],[0.4760,0.2471,0.67,0],[0.4620,0.7455,0.00,0],[0.5004,0.5945,0.00,0],[0.5322,0.4704,0.00,0],[0.4814,0.6671,0.00,0],[0.5561,0.3761,0.00,0],[0.5328,0.4665,0.00,0],[0.4209,0.8998,0.00,0],[0.4854,0.6482,0.00,0],[0.5103,0.5515,0.00,0],[0.5334,0.4599,0.00,0],[0.5278,0.4799,0.00,0],[0.4626,0.7332,0.00,0],[0.4737,0.6874,0.00,0],[0.4636,0.7268,0.00,0],[0.4270,0.8668,0.00,0],[0.5272,0.4742,0.00,0],[0.5395,0.4242,0.00,0],[0.4335,0.8364,0.00,0],[0.4167,0.9013,0.00,0],[0.4547,0.7531,0.00,0],[0.4866,0.6279,0.00,0],[0.4640,0.7146,0.00,0],[0.4843,0.6344,0.00,0],[0.3997,0.9629,0.00,0],[0.5269,0.4678,0.00,0],[0.4580,0.7353,0.00,0],[0.5502,0.3761,0.00,0],[0.4863,0.6244,0.00,0],[0.4718,0.6795,0.00,0],[0.5508,0.1473,0.33,0],[0.4099,0.9171,0.00,0],[0.3923,0.9853,0.00,0],[0.5329,0.4383,0.00,0],[0.4779,0.6519,0.00,0],[0.4455,0.7780,0.00,0],[0.4683,0.6868,0.00,0],[0.5364,0.4211,0.00,0],[0.4899,0.6008,0.00,0],[0.5148,0.5026,0.00,0],[0.4292,0.8332,0.00,0],[0.5124,0.5088,0.00,0],[0.4388,0.7952,0.00,0],[0.4419,0.7821,0.00,0],[0.5251,0.4559,0.00,0],[0.4912,0.5876,0.00,0],[0.4649,0.6897,0.00,0],[0.3997,0.9411,0.00,0],[0.4972,0.5612,0.00,0],[0.4569,0.7178,0.00,0],[0.4780,0.6355,0.00,0],[0.3841,0.9999,0.00,0],[0.4181,0.8666,0.00,0],[0.4426,0.7708,0.00,0],[0.4618,0.6958,0.00,0],[0.5290,0.4339,0.00,0],[0.5371,0.4012,0.00,0],[0.3843,0.9947,0.00,0],[0.4895,0.5855,0.00,0],[0.4110,0.8894,0.00,0],[0.4306,0.8122,0.00,0],[0.4660,0.0060,1.00,0],[0.4874,0.5880,0.00,0],[0.4939,0.5610,0.00,0],[0.5102,0.4967,0.00,0],[0.5067,0.5048,0.00,0],[0.4776,0.6180,0.00,0],[0.5518,0.3284,0.00,0],[0.5211,0.4477,0.00,0],[0.4811,0.6027,0.00,0],[0.5669,0.2689,0.00,0],[0.4694,0.6456,0.00,0],[0.4896,0.5648,0.00,0],[0.5104,0.4839,0.00,0],[0.3858,0.9664,0.00,0],[0.4298,0.7934,0.00,0],[0.4513,0.7087,0.00,0],[0.4205,0.8278,0.00,0],[0.5003,0.5159,0.00,0],[0.4828,0.5816,0.00,0],[0.5200,0.4356,0.00,0],[0.4368,0.7582,0.00,0],[0.4955,0.5292,0.00,0],[0.5020,0.0576,0.67,0],[0.5050,0.4891,0.00,0],[0.4449,0.7201,0.00,0],[0.4164,0.8297,0.00,0],[0.4121,0.8453,0.00,0],[0.4404,0.7353,0.00,0],[0.4629,0.6434,0.00,0],[0.4946,0.5198,0.00,0],[0.4925,0.5264,0.00,0],[0.4743,0.5948,0.00,0],[0.4973,0.5048,0.00,0],[0.5167,0.4280,0.00,0],[0.4392,0.7275,0.00,0],[0.4300,0.7625,0.00,0],[0.4875,0.5385,0.00,0],[0.4539,0.6667,0.00,0],[0.5452,0.3104,0.00,0],[0.4953,0.4996,0.00,0],[0.4784,0.5649,0.00,0],[0.4321,0.7415,0.00,0],[0.4595,0.6336,0.00,0],[0.4515,0.6647,0.00,0],[0.5078,0.4410,0.00,0],[0.4738,0.5719,0.00,0],[0.5470,0.2868,0.00,0],[0.5342,0.3354,0.00,0],[0.4734,0.5710,0.00,0],[0.4701,0.5837,0.00,0],[0.4267,0.7514,0.00,0],[0.4891,0.5076,0.00,0],[0.4176,0.7829,0.00,0],[0.4425,0.6857,0.00,0],[0.4999,0.4619,0.00,0],[0.4949,0.2582,0.33,0],[0.4954,0.4780,0.00,0],[0.4545,0.6293,0.00,0],[0.4595,0.6096,0.00,0],[0.4993,0.4524,0.00,0],[0.4267,0.7317,0.00,0],[0.5422,0.0599,0.33,0],[0.5399,0.2904,0.00,0],[0.5142,0.1670,0.33,0],[0.5087,0.4093,0.00,0],[0.5019,0.4317,0.00,0],[0.4370,0.6803,0.00,0],[0.4570,0.6018,0.00,0],[0.4834,0.4981,0.00,0],[0.4310,0.7014,0.00,0],[0.5149,0.3726,0.00,0],[0.4852,0.4878,0.00,0],[0.3955,0.8359,0.00,0],[0.5275,0.3224,0.00,0],[0.3553,0.9913,0.00,0],[0.3638,0.9579,0.00,0],[0.5000,0.4280,0.00,0],[0.4378,0.6699,0.00,0],[0.4835,0.4895,0.00,0],[0.4868,0.4720,0.00,0],[0.4184,0.7333,0.00,0],[0.4333,0.6714,0.00,0],[0.5107,0.3697,0.00,0],[0.4416,0.6361,0.00,0],[0.4058,0.7747,0.00,0],[0.4496,0.6041,0.00,0],[0.4588,0.5684,0.00,0],[0.4622,0.5551,0.00,0],[0.3594,0.9539,0.00,0],[0.4342,0.6610,0.00,0],[0.5345,0.2702,0.00,0],[0.5348,0.2663,0.00,0],[0.4772,0.4891,0.00,0],[0.4659,0.5298,0.00,0],[0.5149,0.3358,0.00,0],[0.5378,0.2457,0.00,0],[0.4953,0.4098,0.00,0],[0.4477,0.5945,0.00,0],[0.5006,0.3876,0.00,0],[0.4251,0.6762,0.00,0],[0.4416,0.6114,0.00,0],[0.5314,0.2582,0.00,0],[0.4660,0.5126,0.00,0],[0.3637,0.9078,0.00,0],[0.4729,0.4785,0.00,0],[0.5013,0.3661,0.00,0],[0.5371,0.2265,0.00,0],[0.3962,0.7744,0.00,0],[0.3750,0.8532,0.00,0],[0.4481,0.5684,0.00,0],[0.4958,0.3824,0.00,0],[0.4620,0.5137,0.00,0],[0.4636,0.5060,0.00,0],[0.4933,0.3885,0.00,0],[0.5311,0.2414,0.00,0],[0.4954,0.3797,0.00,0],[0.4589,0.5214,0.00,0],[0.4827,0.4272,0.00,0],[0.4371,0.6018,0.00,0],[0.5098,0.3183,0.00,0],[0.4455,0.5662,0.00,0],[0.5075,0.1021,0.33,0],[0.4245,0.6443,0.00,0],[0.4940,0.3725,0.00,0],[0.3903,0.7726,0.00,0],[0.5019,0.3344,0.00,0],[0.5238,0.2471,0.00,0],[0.5287,0.2265,0.00,0],[0.3530,0.9086,0.00,0],[0.4379,0.5773,0.00,0],[0.5016,0.1045,0.33,0],[0.4617,0.4811,0.00,0],[0.4573,0.4981,0.00,0],[0.5185,0.2596,0.00,0],[0.4642,0.4652,0.00,0],[0.4119,0.6656,0.00,0],[0.5115,0.2758,0.00,0],[0.4953,0.3386,0.00,0],[0.5123,0.2663,0.00,0],[0.5786,0.0082,0.00,0],[0.5100,0.2689,0.00,0],[0.4819,0.3770,0.00,0],[0.4359,0.5532,0.00,0],[0.4885,0.3467,0.00,0],[0.4619,0.4496,0.00,0],[0.4684,0.4211,0.00,0],[0.3779,0.7655,0.00,0],[0.4941,0.3127,0.00,0],[0.3779,0.7625,0.00,0],[0.4863,0.3396,0.00,0],[0.4549,0.4592,0.00,0],[0.4542,0.4612,0.00,0],[0.4276,0.5589,0.00,0],[0.4772,0.3660,0.00,0],[0.4790,0.3584,0.00,0],[0.5200,0.1966,0.00,0],[0.5050,0.2541,0.00,0],[0.5013,0.2636,0.00,0],[0.5012,0.2636,0.00,0],[0.4521,0.4545,0.00,0],[0.4906,0.3047,0.00,0],[0.5108,0.2202,0.00,0],[0.4241,0.5510,0.00,0],[0.4509,0.4421,0.00,0],[0.4843,0.3093,0.00,0],[0.5226,0.1591,0.00,0],[0.4698,0.3642,0.00,0],[0.4989,0.2485,0.00,0],[0.4306,0.5087,0.00,0],[0.5319,0.1123,0.00,0],[0.4535,0.4155,0.00,0],[0.4144,0.5639,0.00,0],[0.5342,0.0975,0.00,0],[0.5193,0.1530,0.00,0],[0.4888,0.2702,0.00,0],[0.5338,0.0950,0.00,0],[0.3903,0.6519,0.00,0],[0.4677,0.3507,0.00,0],[0.4644,0.3613,0.00,0],[0.4874,0.2716,0.00,0],[0.4989,0.2241,0.00,0],[0.4928,0.2443,0.00,0],[0.4089,0.5690,0.00,0],[0.4845,0.2747,0.00,0],[0.4020,0.5948,0.00,0],[0.4383,0.4524,0.00,0],[0.4612,0.3613,0.00,0],[0.4682,0.3334,0.00,0],[0.4838,0.2729,0.00,0],[0.4695,0.3270,0.00,0],[0.5127,0.1580,0.00,0],[0.4470,0.4133,0.00,0],[0.4529,0.3902,0.00,0],[0.4435,0.4265,0.00,0],[0.5393,0.0535,0.00,0],[0.4038,0.5801,0.00,0],[0.5027,0.1949,0.00,0],[0.4286,0.4824,0.00,0],[0.4662,0.3334,0.00,0],[0.4528,0.3850,0.00,0],[0.4674,0.3238,0.00,0],[0.4431,0.4164,0.00,0],[0.4774,0.2830,0.00,0],[0.4699,0.3104,0.00,0],[0.3580,0.7435,0.00,0],[0.4126,0.5281,0.00,0],[0.4717,0.2977,0.00,1],[0.5340,0.0553,0.00,0],[0.4991,0.1869,0.00,0],[0.4892,0.2250,0.00,0],[0.5423,0.0135,0.00,0],[0.4836,0.2370,0.00,0],[0.5046,0.1552,0.00,0],[0.4867,0.2230,0.00,0],[0.4822,0.2385,0.00,0],[0.4845,0.2280,0.00,0],[0.5063,0.1431,0.00,0],[0.3966,0.5649,0.00,0],[0.5212,0.0801,0.00,0],[0.3368,0.7967,0.00,0],[0.5116,0.1151,0.00,0],[0.4043,0.0874,0.67,0],[0.4768,0.2497,0.00,0],[0.4843,0.2169,0.00,0],[0.5376,0.0095,0.00,0],[0.5316,0.0290,0.00,0],[0.4779,0.2370,0.00,0],[0.4826,0.2170,0.00,0],[0.4746,0.2443,0.00,0],[0.4607,0.2980,0.00,0],[0.4667,0.2729,0.00,0],[0.5093,0.1067,0.00,0],[0.5130,0.0920,0.00,0],[0.4169,0.4632,0.00,0],[0.4749,0.2325,0.00,1],[0.4715,0.2443,0.00,0],[0.4380,0.3743,0.00,0],[0.5017,0.1266,0.00,0],[0.5224,0.0429,0.00,0],[0.4006,0.5148,0.00,0],[0.5037,0.1121,0.00,0],[0.5042,0.1093,0.00,0],[0.4600,0.2793,0.00,0],[0.5149,0.0576,0.00,0],[0.5092,0.0795,0.00,0],[0.5292,0.0014,0.00,0],[0.4705,0.2295,0.00,0],[0.4010,0.4991,0.00,0],[0.4846,0.1721,0.00,0],[0.4660,0.2443,0.00,0],[0.4463,0.3205,0.00,0],[0.4814,0.1787,0.00,0],[0.4190,0.4196,0.00,0],[0.5205,0.0218,0.00,0],[0.5059,0.0774,0.00,0],[0.4219,0.4035,0.00,0],[0.4087,0.4503,0.00,0],[0.4609,0.0241,0.33,0],[0.4785,0.1763,0.00,0],[0.5152,0.0319,0.00,0],[0.4730,0.1949,0.00,0],[0.4560,0.2582,0.00,0],[0.4967,0.0972,0.00,0],[0.4866,0.1312,0.00,0],[0.4244,0.3725,0.00,0],[0.3885,0.5110,0.00,0],[0.4989,0.0793,0.00,0],[0.5172,0.0057,0.00,0],[0.4230,0.3679,0.00,0],[0.4910,0.1028,0.00,0],[0.4252,0.3578,0.00,0],[0.5004,0.0611,0.00,0],[0.4211,0.3683,0.00,0],[0.5125,0.0122,0.00,0],[0.4676,0.1847,0.00,0],[0.4899,0.0975,0.00,0],[0.4105,0.4008,0.00,0],[0.4317,0.3172,0.00,0],[0.4451,0.2596,0.00,0],[0.4830,0.1076,0.00,0],[0.5043,0.0244,0.00,0],[0.4914,0.0725,0.00,0],[0.4383,0.2767,0.00,0],[0.4841,0.0972,0.00,0],[0.4518,0.0003,0.33,0],[0.5081,0.0019,0.00,0],[0.3723,0.5281,0.00,0],[0.4928,0.0538,0.00,0],[0.3997,0.4157,0.00,0],[0.4137,0.3584,0.00,0],[0.4445,0.2385,0.00,0],[0.3888,0.4524,0.00,0],[0.5043,0.0007,0.00,0],[0.4147,0.3480,0.00,0],[0.4991,0.0175,0.00,0],[0.3868,0.4500,0.00,0],[0.4473,0.2094,0.00,0],[0.4196,0.3167,0.00,0],[0.4477,0.2057,0.00,0],[0.4512,0.1902,0.00,0],[0.4858,0.0556,0.00,0],[0.4992,0.0003,0.00,0],[0.4843,0.0561,0.00,0],[0.4492,0.1914,0.00,0],[0.4643,0.1314,0.00,0],[0.4745,0.0910,0.00,0],[0.4958,0.0079,0.00,0],[0.4951,0.0089,0.00,0],[0.4656,0.1228,0.00,0],[0.3985,0.3815,0.00,0],[0.4678,0.1121,0.00,0],[0.3469,0.5771,0.00,0],[0.4456,0.1898,0.00,1],[0.4849,0.0326,0.00,0],[0.4688,0.0861,0.00,0],[0.4857,0.0182,0.00,0],[0.4745,0.0599,0.00,0],[0.4662,0.0922,0.00,0],[0.3876,0.3979,0.00,0],[0.3884,0.3865,0.00,0],[0.4259,0.2370,0.00,0],[0.4515,0.1359,0.00,0],[0.4642,0.0866,0.00,0],[0.4857,0.0024,0.00,0],[0.4204,0.2541,0.00,0],[0.4836,0.0035,0.00,0],[0.3938,0.3467,0.00,0],[0.4796,0.0089,0.00,0],[0.4517,0.1172,0.00,0],[0.4659,0.0526,0.00,0],[0.4716,0.0277,0.00,0],[0.4777,0.0014,0.00,0],[0.4606,0.0670,0.00,0],[0.4512,0.0982,0.00,0],[0.4558,0.0785,0.00,0],[0.4451,0.1197,0.00,0],[0.4648,0.0423,0.00,0],[0.4638,0.0451,0.00,0],[0.4745,0.0016,0.00,0],[0.4292,0.1770,0.00,0],[0.4673,0.0261,0.00,0],[0.4416,0.1240,0.00,0],[0.4402,0.1231,0.00,0],[0.4414,0.1160,0.00,0],[0.4557,0.0579,0.00,0],[0.4574,0.0454,0.00,0],[0.4439,0.0977,0.00,0],[0.4371,0.1240,0.00,0],[0.4666,0.0007,0.00,0],[0.4654,0.0014,0.00,0],[0.4426,0.0731,0.00,0],[0.4266,0.1344,0.00,0],[0.4511,0.0370,0.00,0],[0.4436,0.0614,0.00,0],[0.4583,0.0030,0.00,0],[0.3886,0.2623,0.00,0],[0.4082,0.1857,0.00,0],[0.3784,0.3000,0.00,0],[0.3905,0.0235,0.33,0],[0.4434,0.0332,0.00,0],[0.4345,0.0633,0.00,0],[0.4201,0.1179,0.00,0],[0.4309,0.0687,0.00,0],[0.3502,0.3824,0.00,0],[0.4059,0.1574,0.00,0],[0.3340,0.4272,0.00,0],[0.4401,0.0135,0.00,0],[0.4093,0.1310,0.00,0],[0.4324,0.0221,0.00,0],[0.3722,0.2428,0.00,0],[0.4279,0.0211,0.00,0],[0.3741,0.2250,0.00,0],[0.4302,0.0063,0.00,0],[0.4312,0.0003,0.00,0],[0.3429,0.3396,0.00,0],[0.3914,0.1342,0.00,0],[0.3845,0.1593,0.00,0],[0.4245,0.0005,0.00,0],[0.3362,0.3344,0.00,0],[0.4115,0.0395,0.00,0],[0.4121,0.0316,0.00,0],[0.3795,0.1344,0.00,1],[0.3964,0.0050,0.00,0],[0.3886,0.0152,0.00,0],[0.3795,0.0484,0.00,0],[0.3896,0.0082,0.00,0],[0.3851,0.0148,0.00,0],[0.3701,0.0681,0.00,0],[0.3304,0.1615,0.00,0],[0.3176,0.0576,0.00,0],[0.3099,0.0138,0.00,0]];
+
+/* ================= 指标(全部现场从 POOL 算,不写死) ================= */
+function poolMetrics(w){
+  const scored=POOL.map(r=>({s:r[0]*w.sem/100 + r[1]*w.sweet/100 + r[2]*w.pov/100, p:r[3]}));
+  scored.sort((a,b)=>b.s-a.s);
+  const n=scored.length, pcts=[];
+  scored.forEach((x,i)=>{if(x.p)pcts.push((i+1)/n*100)});
+  pcts.sort((a,b)=>a-b);
+  const m=pcts.length%2 ? pcts[(pcts.length-1)/2] : (pcts[pcts.length/2-1]+pcts[pcts.length/2])/2;
+  return {median:+m.toFixed(1), top5:pcts.filter(p=>p<=5).length, top20:pcts.filter(p=>p<=20).length, total:pcts.length};
 }
-/* MAE:预判分与实测分的平均绝对误差(越小=系统越懂什么会火) */
-function mae(w){
-  const e = posts.map(p=>Math.abs(scoreWith(p.dim,w).score - p.actual));
-  return +(e.reduce((a,b)=>a+b,0)/e.length).toFixed(1);
+let rw={sem:70,sweet:18,pov:12};
+const rw0={...rw};
+let rHist=[poolMetrics(rw)], rConverged=false;
+
+/* 一步校准(带护栏的爬山):在「从信号A挪一点权重给信号B」的所有走法里,
+   只接受 让正例中位百分位下降 且 前5%召回不减少 的最优一步。
+   没有可接受的走法 → 收敛停止。单调、白盒、可复现。 */
+function rCalStep(){
+  if(rConverged) return;
+  const cur=rHist[rHist.length-1], keys=["sem","sweet","pov"];
+  let best=null;
+  for(const d of [5,2,1]) for(const a of keys) for(const b of keys){
+    if(a===b || rw[a]-d<0) continue;
+    const w={...rw}; w[a]=+(w[a]-d).toFixed(1); w[b]=+(w[b]+d).toFixed(1);
+    const m=poolMetrics(w);
+    if(m.median < cur.median-1e-9 && m.top5 >= cur.top5 &&
+       (!best || m.median<best.m.median || (m.median===best.m.median && m.top5>best.m.top5)))
+      best={w,m};
+  }
+  if(!best){rConverged=true;return;}
+  rw=best.w; rHist.push(best.m);
 }
-/* 皮尔逊相关:某维度原始分 与 真实表现 的相关度 */
-function corr(key){
-  const xs=posts.map(p=>p.dim[key]), ys=posts.map(p=>p.actual), n=xs.length;
-  const mx=xs.reduce((a,b)=>a+b)/n, my=ys.reduce((a,b)=>a+b)/n;
-  let num=0,dx=0,dy=0;
-  for(let i=0;i<n;i++){num+=(xs[i]-mx)*(ys[i]-my);dx+=(xs[i]-mx)**2;dy+=(ys[i]-my)**2;}
-  return num/Math.sqrt(dx*dy||1);
-}
-/* 一步校准:把权重朝「相关度隐含的目标权重」挪 50%(可反复点,逐步收敛) */
-let maeHistory = [mae(weights)];
-function calibrateStep(){
-  const prev={...weights}, prevMae=maeHistory[maeHistory.length-1];
-  const c={}; let sum=0;
-  DIMS.forEach(d=>{const v=Math.max(0,corr(d.k)); c[d.k]=v; sum+=v;});
-  const target={}; DIMS.forEach(d=>target[d.k]= sum? +(c[d.k]/sum*100).toFixed(1):weights[d.k]);
-  DIMS.forEach(d=>{weights[d.k]= +(weights[d.k] + 0.5*(target[d.k]-weights[d.k])).toFixed(1);});
-  // 归一化到 100
-  const s=DIMS.reduce((a,d)=>a+weights[d.k],0);
-  DIMS.forEach(d=>weights[d.k]=+(weights[d.k]/s*100).toFixed(1));
-  const m=mae(weights);
-  if(m > prevMae + 0.05){ weights=prev; return; } // 已到最优,不接受更差的一步(保证单调下降)
-  maeHistory.push(m);
-}
+function rReset(){rw={...rw0};rHist=[poolMetrics(rw)];rConverged=false;renderView();}
 
 /* ================= 视图 ================= */
 const NAV=[
-  {id:"home", em:"🏠", t:"首页"},
-  {id:"topic",em:"🗂", t:"选题（可解释打分）"},
+  {id:"home", em:"🏠", t:"总览"},
   {id:"radar",em:"🎯", t:"达人雷达", tag:"真数据"},
-  {id:"copy", em:"✍️", t:"文案工坊"},
-  {id:"asset",em:"🎬", t:"素材工厂"},
   {id:"data", em:"📊", t:"数据回流"},
   {id:"evolve",em:"🔁",t:"自进化",star:true},
   {id:"set",  em:"⚙️", t:"设置 / 接入"},
@@ -283,123 +238,16 @@ function renderNav(){
   const n=document.getElementById("nav"); n.innerHTML="";
   NAV.forEach(x=>{
     const b=document.createElement("button");
-    b.className=(x.id===cur?"on ":"")+(x.star?"":"");
+    b.className=(x.id===cur?"on ":"");
     b.innerHTML=`<span class="em">${x.em}</span>${x.t}${x.star?'<span class="navtag">核心</span>':x.tag?`<span class="navtag" style="background:var(--green);color:#04240f">${x.tag}</span>`:''}`;
     b.onclick=()=>{cur=x.id;location.hash=x.id;renderNav();renderView();};
     (x.star? n.appendChild(Object.assign(document.createElement("div"),{className:"stargroup"})).appendChild(b) : n.appendChild(b));
   });
 }
-const tierPill=t=>{const m={acq:["精准获客","acq"],side:["沾边引流","side"],fan:["涨粉热点","fan"]}[t];return `<span class="pill ${m[1]}">${m[0]}</span>`;};
 
-function scoreCard(item, w){
-  const {score,reasons}=scoreWith(item.dim,w);
-  const col=score>=75?"var(--green)":score>=55?"var(--gold)":"var(--red)";
-  const verdict=score>=75?"✅ 强烈建议拍":score>=55?"🟡 可拍,注意角度":"⚪ 优先级低";
-  return `<div class="sc">
-    <div class="top">
-      <div><div class="title">${item.t}</div>
-        <div class="small muted">${tierPill(item.tier)} <span class="tag">来源:${item.src}</span></div></div>
-      <div class="score" style="color:${col}">${score}<small>/100</small></div>
-    </div>
-    <div class="reasons">${reasons.map(r=>`
-      <div class="reason"><span class="k">${r.k}</span>
-        <div class="bar"><i style="width:${r.contrib*1.4}%;background:${col}"></i></div>
-        <span class="v">${r.raw}×${r.w}%=${r.contrib}</span></div>`).join("")}</div>
-    <div class="verdict">${verdict} · 抓手:${item.hook}
-      <div class="small" style="margin-top:6px;color:var(--dim2)">总分 = Σ(维度分 × 权重),每一分都说得清哪来的 → 天生可解释</div></div>
-  </div>`;
-}
-
-function view_home(){
-  const top=[...topics].map(t=>({t, s:scoreWith(t.dim,weights).score})).sort((a,b)=>b.s-a.s).slice(0,3);
-  return `<h1>今日概览</h1><p class="sub">人设:${persona.name} · ${persona.who}</p>
-  <div class="kpis">
-    <div class="card kpi"><div class="n">${topics.length}</div><div class="l">今日候选选题</div><div class="d up">按人设打分排序</div></div>
-    <div class="card kpi"><div class="n">${posts.length}</div><div class="l">已发布沉淀</div><div class="d">喂给自进化闭环</div></div>
-    <div class="card kpi"><div class="n" style="color:var(--gold)">${maeHistory[maeHistory.length-1]}</div><div class="l">当前预判误差 MAE</div><div class="d ${maeHistory.length>1?'up':''}">越小=系统越懂什么会火</div></div>
-    <div class="card kpi"><div class="n">${DIMS.length}</div><div class="l">打分维度</div><div class="d">权重可被数据校准</div></div>
-  </div>
-  <div class="sect">🌀 一个人的内容增长闭环</div>
-  <div class="card"><div class="wheel">
-    <div class="node"><div class="e">🔥</div><div class="t">监控同行 / 热点</div><div class="d">拉信号</div></div>
-    <div class="node"><div class="e">🎯</div><div class="t">AI 选题</div><div class="d">按人设打分</div></div>
-    <div class="node"><div class="e">✍️</div><div class="t">AI 文案</div><div class="d">四类一键出</div></div>
-    <div class="node"><div class="e">🎬</div><div class="t">素材工厂</div><div class="d">图/片</div></div>
-    <div class="node"><div class="e">📤</div><div class="t">多平台发布</div><div class="d">一处发</div></div>
-    <div class="node star"><div class="e">🔁</div><div class="t">数据回流 · 自进化</div><div class="d">预判 vs 实测 → 校准</div></div>
-  </div>
-  <div class="note warn">★ 最右下角这块「预判 vs 实测 → 自动校准」,是原版演示里规划了、但开源代码<b>尚未实现</b>的部分。这一版我们把它做成了可运行的 —— 去 <b>🔁 自进化</b> 页看。</div>
-  </div>
-  <div class="sect">🎯 今日 Top 3 该拍什么</div>
-  <div class="grid3">${top.map(x=>scoreCard(x.t,weights)).join("")}</div>`;
-}
-
-function view_topic(){
-  const order={acq:0,side:1,fan:2};
-  const list=[...topics].sort((a,b)=> (order[a.tier]-order[b.tier]) || scoreWith(b.dim,weights).score-scoreWith(a.dim,weights).score);
-  return `<h1>选题 · 可解释打分</h1>
-  <p class="sub">AI 从热点/对标/经历里生成候选,按人设三层打分(建议配比 精准获客:沾边引流:涨粉热点 = 7:2:1)。<b>同一套打分引擎切成 creator 模式,就是影石达人雷达。</b></p>
-  <div class="row" style="margin-bottom:14px">
-    <span class="pill acq">精准获客</span><span class="pill side">沾边引流</span><span class="pill fan">涨粉热点</span>
-    <span class="muted small">· 当前权重:${DIMS.map(d=>d.name+' '+weights[d.k]+'%').join(' / ')}</span>
-  </div>
-  <div class="grid2">${list.map(t=>scoreCard(t,weights)).join("")}</div>
-  <div class="note">这些卡片就是给影石达人雷达用的「可解释推荐卡」原型:把对象从「选题」换成「达人」,卡片结构一字不改。<b>已经切好了 → 去 🎯 达人雷达页看,那边是 1,106 个真实频道的真回测数据。</b></div>`;
-}
-
-function view_data(){
-  const rows=posts.map(p=>{const pred=scoreWith(p.dim,weights).score;const err=pred-p.actual;
-    return `<tr><td>${p.t}</td>
-      <td style="color:var(--blue)">${pred}</td>
-      <td style="color:var(--green)">${p.actual}</td>
-      <td class="delta" style="color:${Math.abs(err)<=10?'var(--green)':Math.abs(err)<=25?'var(--gold)':'var(--red)'}">${err>0?'+':''}${err}</td></tr>`;}).join("");
-  return `<h1>数据回流</h1><p class="sub">作品发出去 3 天后,真实表现(播放/互动归一成 0-100 实测分)回流到这里,跟发布前的 AI 预判做对比。这就是自进化的燃料。</p>
-  <div class="card"><table>
-    <tr><th>作品</th><th>发布前 AI 预判</th><th>发布后 实测</th><th>误差</th></tr>${rows}</table>
-    <div class="note warn" style="margin-top:16px">看红色误差行:几条<b>预判很高、实测很差</b>的,全是「热度高但相关性低」的蹭热点内容。系统据此会在自进化页把权重从「热度」搬走 → <b>这就是它学到的东西。</b></div>
-  </div>`;
-}
-
-function view_evolve(){
-  const maxMae=Math.max(...maeHistory,1);
-  const bars=maeHistory.map((m,i)=>`<div class="b" style="height:${Math.max(8,m/maxMae*100)}%"><span>${m}</span><em>${i===0?'初始':'第'+i+'轮'}</em></div>`).join("");
-  const wrows=DIMS.map(d=>{
-    const now=weights[d.k], old=weights0[d.k], dd=+(now-old).toFixed(1);
-    return `<div class="wrow">
-      <div>${d.name}<div class="small muted">${d.desc}</div></div>
-      <div class="wbar"><i style="width:${now}%"></i><div class="old" style="left:${old}%"></div></div>
-      <div class="delta">${now}% <span style="color:${dd>0?'var(--green)':dd<0?'var(--red)':'var(--dim2)'}">(${dd>0?'+':''}${dd})</span></div>
-    </div>`;}).join("");
-  const c=DIMS.map(d=>({n:d.name,v:+corr(d.k).toFixed(2)})).sort((a,b)=>b.v-a.v);
-  return `<h1>🔁 自进化 <span class="pill" style="color:var(--gold);border-color:rgba(245,182,78,.5)">原版未实现 · 这版做出来了</span></h1>
-  <p class="sub">发布前预判 vs 发布后实测,系统自己找出「哪些维度真的和爆款相关」,把打分权重朝那边挪。白盒、可解释、越用越准 —— 这才是真的强化,不是 PPT。</p>
-
-  <div class="grid2">
-    <div class="card cal">
-      <div class="sect" style="margin:0 0 14px">① 预判误差 MAE,每校准一轮下降</div>
-      <div class="maechart">${bars}</div>
-      <div style="margin-top:26px;display:flex;gap:10px;align-items:center">
-        <button class="btn gold" onclick="calibrateStep();renderView();">▶ 运行一轮自进化校准</button>
-        <button class="btn ghost" onclick="resetCal()">重置</button>
-        <span class="muted small">MAE ${maeHistory[0]} → ${maeHistory[maeHistory.length-1]}</span>
-      </div>
-    </div>
-    <div class="card cal">
-      <div class="sect" style="margin:0 0 14px">② 权重变化(金色虚线=初始,蓝条=现在)</div>
-      <div class="weights">${wrows}</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:16px">
-    <div class="sect" style="margin:0 0 10px">③ 系统学到的洞察(维度 × 真实表现相关度)</div>
-    <div class="row">${c.map(x=>`<span class="pill ${x.v>=0.6?'acq':x.v<=0.2?'':'side'}">${x.n} ${x.v}</span>`).join("")}</div>
-    <div class="note">相关度最高的是 <b>${c[0].n}</b> 和 <b>${c[1].n}</b>,最低的是 <b>${c[c.length-1].n}</b>。翻译成人话:<b>盲目蹭热度几乎不带来真实爆款,相关性和差异化才是硬信号。</b>系统靠数据自己得出这个结论,并改掉了新手"唯热度论"的权重 —— 原版愿景里的"越用越懂你",我们把它落成了代码。</div>
-  </div>`;
-}
-function resetCal(){weights={...weights0};maeHistory=[mae(weights)];renderView();}
-
-/* ================= 达人雷达(真数据) ================= */
 const fmtSubs=v=>v==null?"—":v>=1e6?(v/1e6).toFixed(1).replace(/\.0$/,"")+"M":v>=1e3?Math.round(v/1e3)+"k":v;
+const ava=(c,cls)=>`<img class="ava${cls?' '+cls:''}" src="avatars/r${c.rank}.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+
 function radarCard(c){
   const total=(c.score*100).toFixed(1);
   const col=c.pct<=5?"var(--green)":c.pct<=20?"var(--gold)":"var(--red)";
@@ -409,17 +257,52 @@ function radarCard(c){
   const reasons=RDIMS.map(d=>({k:d.name,raw:c[d.k],w:d.w,contrib:+(c[d.k]*d.w).toFixed(1)})).sort((a,b)=>b.contrib-a.contrib);
   return `<div class="sc">
     <div class="top">
-      <div><div class="title"><a href="${c.url}" target="_blank">${c.n}</a></div>
-        <div class="small muted">${badge} <span class="tag">订阅 ${fmtSubs(c.subs)}</span></div></div>
+      <div>${ava(c)}<div style="min-width:0"><div class="title"><a href="${c.url}" target="_blank">${c.n}</a></div>
+        <div class="small muted">${badge}<br><span class="tag" style="margin-top:4px;display:inline-block">订阅 ${fmtSubs(c.subs)}</span></div></div></div>
       <div class="score" style="color:${col}">${total}<small>/100</small></div>
     </div>
     <div class="reasons">${reasons.map(r=>`
       <div class="reason"><span class="k">${r.k}</span>
         <div class="bar"><i style="width:${Math.min(100,r.contrib*1.9)}%;background:${col}"></i></div>
         <span class="v">${r.raw.toFixed(2)}×${r.w}%=${r.contrib}</span></div>`).join("")}</div>
-    <div class="verdict">全池排名 <b>#${c.rank}</b> / 1,106 · 前 ${c.pct}%</div>
+    <div class="verdict">全池排名 <b>#${c.rank}</b> / ${POOL.length} · 前 ${c.pct}%</div>
   </div>`;
 }
+
+function kpiStrip(){
+  const m0=poolMetrics(rw0);
+  const mult=(m0.top5/m0.total/0.05).toFixed(1);
+  return `<div class="kpis">
+    <div class="card kpi"><div class="n">${POOL.length.toLocaleString()}</div><div class="l">真实频道池</div><div class="d">55+ 个多语言搜索词采集</div></div>
+    <div class="card kpi"><div class="n">${m0.total}</div><div class="l">已验证合作正例</div><div class="d">盲测时隐藏,防泄漏</div></div>
+    <div class="card kpi"><div class="n" style="color:var(--green)">${mult}×</div><div class="l">前 5% 召回 vs 随机</div><div class="d up">${m0.top5}/${m0.total}=${Math.round(m0.top5/m0.total*100)}%,随机基线 5%</div></div>
+    <div class="card kpi"><div class="n" style="color:var(--gold)">${m0.median}%</div><div class="l">正例中位百分位</div><div class="d">随机应为 50%,越低越好</div></div>
+  </div>`;
+}
+
+function view_home(){
+  const fresh=RADAR.filter(c=>!c.pos).sort((a,b)=>a.rank-b.rank).slice(0,3);
+  return `<h1>达人雷达 · 总览</h1>
+  <p class="sub">给影石市场团队的「主动发现层」:从全网频道池里把「下一个值得合作的中腰部达人」捞出来,每一分都说得清哪来的。</p>
+  ${kpiStrip()}
+  <div class="sect">🌀 达人雷达闭环</div>
+  <div class="card"><div class="wheel">
+    <div class="node"><div class="e">📡</div><div class="t">采集频道池</div><div class="d">官方 API / 多语言搜索</div></div>
+    <div class="node"><div class="e">🎯</div><div class="t">白盒打分</div><div class="d">三信号加权,可解释</div></div>
+    <div class="node"><div class="e">🗂</div><div class="t">推荐卡</div><div class="d">人工复核,一眼看懂</div></div>
+    <div class="node"><div class="e">🤝</div><div class="t">投放 / 合作</div><div class="d">市场团队决策</div></div>
+    <div class="node"><div class="e">📊</div><div class="t">数据回流</div><div class="d">合作效果回来</div></div>
+    <div class="node star"><div class="e">🔁</div><div class="t">自进化</div><div class="d">回流校准权重</div></div>
+    <div class="node"><div class="e">📈</div><div class="t">越用越准</div><div class="d">下一轮推荐更好</div></div>
+    <div class="node"><div class="e">🛡</div><div class="t">护栏</div><div class="d">校准不许伤头部质量</div></div>
+  </div>
+  <div class="note warn">★ 「数据回流 → 自进化」这两环,是市面上同类工具(包括我们学习的原版 engine)演示了但开源代码<b>尚未实现</b>的部分 —— 这一版做成了可运行的,去 <b>🔁 自进化</b> 页现场点。</div>
+  </div>
+  <div class="sect">🆕 引擎交出的第一页(盲测排名前三的新面孔)</div>
+  <div class="grid3">${fresh.map(radarCard).join("")}</div>
+  <div class="note">工作流骨架学自 engine.zcchr.com(飞书 AI 绝活大会展示),我们只取对影石命题有用的两环(回流+自进化);选题/文案/素材那些内容生产模块与本命题无关,不放进来。</div>`;
+}
+
 function view_radar(){
   const hits=RADAR.filter(c=>c.pos&&c.pct<=5).sort((a,b)=>a.rank-b.rank);
   const fresh=RADAR.filter(c=>!c.pos).sort((a,b)=>a.rank-b.rank).slice(0,6);
@@ -427,51 +310,84 @@ function view_radar(){
     const col=c.pct<=5?"var(--green)":c.pct<=20?"var(--gold)":"var(--dim)";
     return `<tr${c.pos?' style="background:rgba(57,217,138,.05)"':''}>
       <td class="delta">#${c.rank}</td>
-      <td><a href="${c.url}" target="_blank">${c.n}</a></td>
+      <td>${ava(c,"sm")}<a href="${c.url}" target="_blank">${c.n}</a></td>
       <td>${fmtSubs(c.subs)}</td>
       <td class="delta">${c.sem.toFixed(2)}</td><td class="delta">${c.sweet.toFixed(2)}</td><td class="delta">${c.pov.toFixed(2)}</td>
       <td class="delta" style="color:${col};font-weight:700">${(c.score*100).toFixed(1)}</td>
       <td class="small">${c.pos?(c.src==="star"?"✅ 大使/专访":"✅ 中腰部赞助"):"🆕 新发现"}</td></tr>`;}).join("");
-  return `<h1>🎯 达人雷达 <span class="pill" style="color:var(--green);border-color:rgba(57,217,138,.5)">影石命题 · 全部真数据</span></h1>
-  <p class="sub">这一页不是种子样本。数据来自 7/6–7/7 的真实盲测回测:1,106 个全球摩托/骑行 YouTube 频道(公开元数据+本地 embedding,零 API 成本),26 个已验证影石合作达人当标准答案,打分时把一切品牌痕迹剔除。同一套「白盒打分 + 可解释卡」,对象从选题换成达人。</p>
-  <div class="kpis">
-    <div class="card kpi"><div class="n">1,106</div><div class="l">真实频道池</div><div class="d">55+ 个多语言搜索词采集</div></div>
-    <div class="card kpi"><div class="n">26</div><div class="l">已验证合作正例</div><div class="d">盲测时隐藏,防泄漏</div></div>
-    <div class="card kpi"><div class="n" style="color:var(--green)">4.6×</div><div class="l">前 5% 召回 vs 随机</div><div class="d up">23% 召回,随机基线 5%</div></div>
-    <div class="card kpi"><div class="n" style="color:var(--gold)">28.5%</div><div class="l">正例中位百分位</div><div class="d">随机应为 50%</div></div>
-  </div>
+  return `<h1>🎯 达人雷达 <span class="pill ok">全部真数据 · 回测 v1.2 口径</span></h1>
+  <p class="sub">数据来自 7/6–7/7 的真实盲测回测:1,106 个全球摩托/骑行 YouTube 频道(公开元数据+本地 embedding,零 API 成本),26 个已验证影石合作达人当标准答案,打分时把一切品牌痕迹剔除。</p>
+  ${kpiStrip()}
   <div class="sect">✅ 盲测命中:引擎在看不到任何合作痕迹时,把这 6 个真实合作达人排进了前 5%</div>
   <div class="grid3">${hits.map(radarCard).join("")}</div>
   <div class="sect">🆕 引擎交出的第一页:如果影石今天就用它,推荐的新面孔</div>
   <div class="grid3">${fresh.map(radarCard).join("")}</div>
   <div class="sect">📋 完整榜单(前 20 名 + 全部 26 个正例,绿底 = 已验证合作)</div>
-  <div class="card" style="overflow-x:auto"><table>
+  <div class="card tablewrap"><table>
     <tr><th>排名</th><th>频道</th><th>订阅</th><th>语义</th><th>甜点</th><th>POV</th><th>总分</th><th>身份</th></tr>${rows}</table>
     <div class="note" style="margin-top:14px"><b>巨星沉底是设计使然:</b>Fabio Wibmer(804万粉)排 92.9%、Casey Neistat(1270万)排 99.2%。中腰部甜点函数刻意压制巨星 —— "发现下一个"的引擎不该把预算指向人尽皆知的人。这也顺带证明引擎没有在"认名人"。</div>
-    <div class="note warn" style="margin-top:10px"><b>和自进化闭环的接口:</b>这套权重(70/18/12)目前是手工设定的。把「签约后实际转化」当实测分回流,🔁 自进化页那套校准机制原样搬过来,权重就能像内容侧一样被数据自动纠偏 —— 这是 Phase 1 要做的事。数据源 demo 用公开元数据,正式交付走 YouTube Data API。</div>
   </div>`;
 }
 
-function view_copy(){
-  const cfg=getCfg();
-  return `<h1>文案工坊</h1><p class="sub">选一个选题一键出四类文案:视频口播 / 图文 / 公众号 / 朋友圈,定稿后学你的风格。</p>
-  <div class="card">
-    <label>选一个选题</label>
-    <select id="tpick">${topics.map((t,i)=>`<option value="${i}">${t.t}</option>`).join("")}</select>
-    <div style="margin-top:12px;display:flex;gap:10px">
-      <button class="btn" onclick="genCopy()">✨ 生成四类文案</button>
-      <span class="muted small">${cfg.key?'已接入大模型:'+ (cfg.model||'') :'未接大模型 → 用本地模板降级(接入见「设置」页)'}</span>
-    </div>
-    <div id="copyout" style="margin-top:16px"></div>
-  </div>
-  <div class="note">这块的真实实现 = 冯兴龙开源的 <code>feishu-base-custom-api</code> 那份单文件插件:飞书多维表格里一列选题 → 调 LLM → 写回四列文案。壳可以直接搬,我们只需把它的"图片路径"改成"文本路径"。</div>`;
+function view_data(){
+  const rows=RADAR.filter(c=>c.pos).sort((a,b)=>a.rank-b.rank).map(c=>{
+    const verdict=c.pct<=5?['命中前 5%','ok']:c.pct<=20?['前 20%','hot']:(c.subs>=1e6?['沉底(巨星,设计使然)','vio']:['中后段,需深层信号','fan']);
+    return `<tr>
+      <td>${ava(c,"sm")}<a href="${c.url}" target="_blank">${c.n}</a></td>
+      <td>${fmtSubs(c.subs)}</td>
+      <td class="small">${c.src==="star"?"官方大使/专访":"中腰部赞助"}</td>
+      <td class="delta">#${c.rank} · 前 ${c.pct}%</td>
+      <td><span class="pill ${verdict[1]}">${verdict[0]}</span></td></tr>`;}).join("");
+  return `<h1>📊 数据回流</h1>
+  <p class="sub">闭环的燃料:推荐出去的达人,合作后效果如何,要回来对答案。demo 里的回流信号 = 26 个已验证影石合作(公开赞助声明/官方公告),真实部署换成投放后的转化数据,机制一样。</p>
+  <div class="card tablewrap"><table>
+    <tr><th>已验证合作达人</th><th>订阅</th><th>合作证据层</th><th>引擎盲测排名</th><th>对答案</th></tr>${rows}</table>
+    <div class="note" style="margin-top:16px">读法:绿色=引擎凭内容特征就该抓到、也真抓到了的人;蓝色=元数据(标题/简介/订阅)只够把他们排到中后段,需要互动率/成长斜率等深层信号才能浮起 —— 这正是 Phase 1 要加的维度;紫色=巨星,甜点函数刻意压的,不是失误。</div>
+    <div class="note warn">这张「预判 vs 实际」对照表,就是 🔁 自进化页的输入。没有回流,打分器永远停在第一天的水平。</div>
+  </div>`;
 }
-function view_asset(){return `<h1>素材工厂</h1><p class="sub">主图矩阵 / 详情页 / 15秒 AI 视频。</p>
-  <div class="stub">🎬 Phase 0 未铺开<br><span class="small">真实实现 = 冯兴龙开源的 <code>ai-xunjian</code>(AI 自动初剪:剪气口→转写→AI初剪→五轨编辑器→HyperFrames 渲染)。<br>整条 <code>firstcut/run.mjs</code> 管线可直接接进来,参数是他几十条真视频调出来的,不用重造。</span></div>`;}
+
+function view_evolve(){
+  const m0=rHist[0], mNow=rHist[rHist.length-1];
+  const maxM=Math.max(...rHist.map(h=>h.median),1);
+  const bars=rHist.map((h,i)=>`<div class="b" style="height:${Math.max(10,h.median/maxM*100)}%"><span>${h.median}%</span><em>${i===0?'初始':'第'+i+'轮'}</em></div>`).join("");
+  const wrows=RDIMS.map(d=>{
+    const now=rw[d.k], old=rw0[d.k], dd=+(now-old).toFixed(1);
+    return `<div class="wrow">
+      <div title="${d.desc}">${d.name}</div>
+      <div class="wbar"><i style="width:${now}%"></i><div class="old" style="left:${old}%"></div></div>
+      <div class="delta">${now}% <span style="color:${dd>0?'var(--green)':dd<0?'var(--red)':'var(--dim2)'}">(${dd>0?'+':''}${dd})</span></div>
+    </div>`;}).join("");
+  return `<h1>🔁 自进化 <span class="pill" style="color:var(--gold);border-color:rgba(245,182,78,.5)">在 1,106 条真数据上现场跑</span></h1>
+  <p class="sub">把回流信号喂回打分器:系统自己试探权重方向,<b>只接受「正例中位百分位下降 且 前5%召回不减少」的移动</b>(带护栏的爬山)。单调、白盒、每一步可复现。</p>
+
+  <div class="grid2">
+    <div class="card cal">
+      <div class="sect" style="margin:0 0 14px">① 正例中位百分位,每校准一轮下降(越低=真实合作达人越靠前)</div>
+      <div class="maechart">${bars}</div>
+      <div style="margin-top:26px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn gold" onclick="rCalStep();renderView();">▶ 运行一轮自进化校准</button>
+        <button class="btn ghost" onclick="rReset()">重置</button>
+        <span class="muted small">${m0.median}% → ${mNow.median}%${rConverged?' · ✔ 已收敛':''} · 前5%召回 ${mNow.top5}/${mNow.total} 保持</span>
+      </div>
+    </div>
+    <div class="card cal">
+      <div class="sect" style="margin:0 0 14px">② 权重变化(金色虚线=初始,蓝条=现在)</div>
+      <div class="weights">${wrows}</div>
+      <div class="note" style="margin-top:14px">校准结果不回写 🎯 达人雷达页(那边锁定回测 v1.2 口径);真实产品里,校准后的权重滚动生效到下一轮推荐。</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="sect" style="margin:0 0 10px">③ 这次跑通学到的最值钱的一课:自进化必须带护栏</div>
+    <div class="small" style="color:#bcd0f5">我们先试过"纯优化中位百分位"的版本:系统会把 POV 权重清零、中位数一路降到 22%,看着更漂亮 —— 但前 5% 召回从 6 跌到 4,<b>头部推荐质量被牺牲了</b>。对"发现下一个"的业务,榜单头部就是产品本身。所以正式版校准加了护栏:任何一步不允许前 5% 召回下降。</div>
+    <div class="note warn" style="margin-top:12px"><b>诚实边界:</b>demo 的回流信号是「已验证合作」标签,在同一批标签上校准+评估存在过拟合风险;真实部署的回流信号是投放后的转化数据,且要用时间滚动验证(用签约前数据预测、签约后数据校验)。机制相同,这页演示的是机制。</div>
+  </div>`;
+}
 
 function view_set(){
   const c=getCfg();
-  return `<h1>设置 / 接入</h1><p class="sub">大模型是可选的:不填就用本地模板降级,填了文案/热点筛选就走真模型。Key 只存你本机浏览器,不上传。</p>
+  return `<h1>设置 / 接入</h1><p class="sub">大模型是可选的:接入后用于对前 100 名做精读重排、生成推荐卡的人话推荐语。Key 只存你本机浏览器,不上传。</p>
   <div class="card grid2">
     <div><label>API 地址(OpenAI 兼容 /chat/completions)</label><input id="c_base" value="${c.base||''}" placeholder="https://api.xxx.com/v1/chat/completions"></div>
     <div><label>模型名</label><input id="c_model" value="${c.model||''}" placeholder="gpt-4o-mini / deepseek-chat …"></div>
@@ -480,38 +396,23 @@ function view_set(){
   </div>
   <div class="note">
     <b>数据源接入路线(诚实版):</b><br>
-    · Demo/本次跑通 → 个人 cookie 采集(仅用于验证,PPT 注明)<br>
+    · Demo/本次跑通 → 公开元数据采集(仅用于验证,PPT 注明)<br>
     · 正式交付影石 → YouTube Data API / 星图 / 巨量开放平台 / RSS 企业源,<b>绝不上 cookie 爬</b><br>
-    · 打分引擎、可解释卡、自进化闭环 → 与数据源解耦,换源不改核心
+    · 打分引擎、可解释卡、自进化闭环 → 与数据源解耦,换源不改核心<br>
+    · 落地形态 → 飞书多维表格存达人池,侧边栏插件一键批量打分,推荐卡发飞书群
   </div>`;
 }
 
-/* ---------- 可选大模型(降级安全) ---------- */
 function getCfg(){try{return JSON.parse(localStorage.getItem("ge-cfg")||"{}")}catch(e){return{}}}
 function saveCfg(){localStorage.setItem("ge-cfg",JSON.stringify({
   base:val("c_base"),model:val("c_model"),key:val("c_key")}));renderView();}
 const val=id=>{const e=document.getElementById(id);return e?e.value.trim():"";};
-async function genCopy(){
-  const t=topics[+document.getElementById("tpick").value];const cfg=getCfg();const out=document.getElementById("copyout");
-  out.innerHTML='<span class="muted small">生成中…</span>';
-  const kinds=[["🎬 视频口播","3秒钩子+痛点+方法+行动"],["📕 图文","小红书体,标题党+分点"],["💚 公众号","稍长,有观点"],["💬 朋友圈","一句话+悬念"]];
-  if(!cfg.key){ // 本地模板降级
-    out.innerHTML=kinds.map(k=>`<div class="sc" style="margin-bottom:10px"><b>${k[0]}</b>
-      <div class="small muted" style="margin-top:6px">【${t.t}】· ${k[1]}<br>(本地模板占位。接入大模型后这里出真文案。)</div></div>`).join("");return;
-  }
-  try{
-    const res=await fetch(cfg.base,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+cfg.key},
-      body:JSON.stringify({model:cfg.model||"gpt-4o-mini",messages:[{role:"user",
-        content:`我的人设:${persona.who}。请就选题「${t.t}」写四类文案,分别是:视频口播脚本、小红书图文、公众号短文、朋友圈一句话。简洁,带钩子。`}]})});
-    const d=await res.json();out.innerHTML=`<div class="sc"><div class="small" style="white-space:pre-wrap">${(d.choices?.[0]?.message?.content||JSON.stringify(d)).replace(/</g,"&lt;")}</div></div>`;
-  }catch(e){out.innerHTML=`<div class="note warn">调用失败:${e.message}。检查「设置」里的地址/Key。</div>`;}
-}
 
 function renderView(){
-  const v={home:view_home,topic:view_topic,radar:view_radar,copy:view_copy,asset:view_asset,data:view_data,evolve:view_evolve,set:view_set}[cur];
+  const v={home:view_home,radar:view_radar,data:view_data,evolve:view_evolve,set:view_set}[cur];
   const el=document.getElementById("view");el.innerHTML=v();el.classList.remove("flash");void el.offsetWidth;el.classList.add("flash");
 }
-/* hash 路由:#radar 可直达达人雷达页(方便分享/收藏) */
+/* hash 路由:#radar / #evolve 可直达(方便分享/收藏) */
 const h=location.hash.replace("#","");
 if(NAV.some(x=>x.id===h)) cur=h;
 renderNav();renderView();
