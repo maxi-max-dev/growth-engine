@@ -14,7 +14,7 @@
   a{color:var(--cyan);text-decoration:none}
   .app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
   /* sidebar */
-  .side{border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#0d1526,#0a1020)}
+  .sidebar{border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#0d1526,#0a1020)}
   .brand{font-weight:800;font-size:16px;letter-spacing:.5px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
   .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:var(--glow)}
   .brand small{display:block;color:var(--dim2);font-weight:500;font-size:11px;margin-top:3px;letter-spacing:0}
@@ -97,7 +97,7 @@
 </style>
 
 <div class="app">
-  <aside class="side">
+  <aside class="sidebar">
     <div class="brand"><span class="dot"></span>内容增长引擎
       <small>Max 版 · 复刻 + 补全自进化闭环</small></div>
     <nav class="nav" id="nav"></nav>
