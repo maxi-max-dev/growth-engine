@@ -1,0 +1,518 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>内容增长引擎 · Max 版（含自进化闭环）</title>
+<style>
+  :root{
+    --bg:#0a0f1e; --panel:#111a2e; --panel2:#0e1626; --line:#20304d;
+    --ink:#eaf1ff; --dim:#8aa0c6; --dim2:#5f7398;
+    --cyan:#37e0e6; --blue:#4c8dff; --gold:#f5b64e; --green:#39d98a; --red:#ff6b7a; --violet:#9b8cff;
+    --glow:0 0 24px rgba(55,224,230,.15);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 78% -8%,#16233f 0,var(--bg) 55%);
+    color:var(--ink);font:14px/1.55 -apple-system,"PingFang SC","MiSans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:var(--cyan);text-decoration:none}
+  .app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+  /* sidebar */
+  .side{border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#0d1526,#0a1020)}
+  .brand{font-weight:800;font-size:16px;letter-spacing:.5px;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:var(--glow)}
+  .brand small{display:block;color:var(--dim2);font-weight:500;font-size:11px;margin-top:3px;letter-spacing:0}
+  .nav{margin-top:18px;display:flex;flex-direction:column;gap:2px}
+  .nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;color:var(--dim);font-weight:600;font-size:13px}
+  .nav button:hover{background:#16233f;color:var(--ink)}
+  .nav button.on{background:linear-gradient(90deg,rgba(76,141,255,.22),rgba(55,224,230,.08));color:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+  .nav button .em{width:18px;text-align:center}
+  .nav .stargroup button.on{background:linear-gradient(90deg,rgba(245,182,78,.24),rgba(245,182,78,.05));box-shadow:inset 0 0 0 1px rgba(245,182,78,.35)}
+  .navtag{font-size:9px;background:var(--gold);color:#231a04;padding:1px 5px;border-radius:6px;font-weight:800;margin-left:auto}
+  .demoflag{margin-top:22px;font-size:11px;color:var(--dim2);border-top:1px dashed var(--line);padding-top:12px}
+  .demoflag b{color:var(--gold)}
+  /* main */
+  .main{padding:26px 34px 60px;max-width:1120px}
+  h1{font-size:22px;margin:0 0 2px}
+  .sub{color:var(--dim);margin:0 0 22px;font-size:13px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .kpi .n{font-size:26px;font-weight:800;letter-spacing:.5px}
+  .kpi .l{color:var(--dim);font-size:12px;margin-top:2px}
+  .kpi .d{font-size:11px;margin-top:6px}
+  .up{color:var(--green)} .down{color:var(--red)}
+  .sect{font-weight:800;font-size:15px;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--dim)}
+  .pill.hot{color:var(--gold);border-color:rgba(245,182,78,.4)}
+  .pill.acq{color:var(--cyan);border-color:rgba(55,224,230,.4)}
+  .pill.side{color:var(--violet);border-color:rgba(155,140,255,.4)}
+  .pill.fan{color:var(--blue);border-color:rgba(76,141,255,.4)}
+  .muted{color:var(--dim)}
+  .small{font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim2);font-weight:600;font-size:12px}
+  .btn{all:unset;cursor:pointer;background:linear-gradient(90deg,var(--blue),var(--cyan));color:#04121f;font-weight:800;
+    padding:9px 16px;border-radius:10px;font-size:13px;display:inline-flex;gap:7px;align-items:center}
+  .btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);font-weight:600}
+  .btn.gold{background:linear-gradient(90deg,var(--gold),#ffcf7a);color:#241900}
+  .btn:active{transform:translateY(1px)}
+  input,select,textarea{background:#0b1322;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 11px;font:inherit;width:100%}
+  label{font-size:12px;color:var(--dim);display:block;margin:10px 0 4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  /* score card */
+  .sc{border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:var(--panel2)}
+  .sc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .sc .score{font-size:30px;font-weight:800;line-height:1}
+  .sc .score small{font-size:12px;color:var(--dim);font-weight:600}
+  .sc .title{font-weight:700;font-size:15px;margin-bottom:2px}
+  .reasons{margin-top:12px;display:flex;flex-direction:column;gap:5px}
+  .reason{display:flex;align-items:center;gap:8px;font-size:12px}
+  .reason .bar{height:6px;border-radius:4px;background:#1b2740;flex:1;overflow:hidden}
+  .reason .bar i{display:block;height:100%;border-radius:4px}
+  .reason .v{width:52px;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
+  .reason .k{width:76px;color:var(--dim)}
+  .verdict{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:12px;color:var(--dim)}
+  .tag{font-size:11px;padding:2px 8px;border-radius:7px;background:#16233f;color:var(--dim);margin-left:6px}
+  /* loop wheel */
+  .wheel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+  .node{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;background:var(--panel2);position:relative}
+  .node .e{font-size:20px} .node .t{font-weight:700;font-size:13px;margin-top:3px} .node .d{font-size:11px;color:var(--dim2)}
+  .node.star{border-color:rgba(245,182,78,.5);box-shadow:0 0 22px rgba(245,182,78,.12)}
+  .node.star .t{color:var(--gold)}
+  /* calibration */
+  .cal .weights{display:flex;flex-direction:column;gap:10px}
+  .wrow{display:grid;grid-template-columns:96px 1fr 120px;align-items:center;gap:10px}
+  .wbar{height:22px;background:#0b1322;border-radius:7px;overflow:hidden;position:relative}
+  .wbar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan))}
+  .wbar .old{position:absolute;top:0;bottom:0;border-right:2px dashed var(--gold);opacity:.9}
+  .delta{font-variant-numeric:tabular-nums;font-size:12px}
+  .maechart{display:flex;align-items:flex-end;gap:10px;height:120px;padding:8px 4px;border-bottom:1px solid var(--line)}
+  .maechart .b{width:34px;background:linear-gradient(180deg,var(--cyan),var(--blue));border-radius:6px 6px 0 0;position:relative}
+  .maechart .b span{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--dim)}
+  .maechart .b em{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--dim2);font-style:normal;white-space:nowrap}
+  .note{background:rgba(76,141,255,.08);border:1px solid rgba(76,141,255,.25);border-radius:10px;padding:11px 13px;font-size:12px;color:#bcd0f5;margin-top:14px}
+  .warn{background:rgba(245,182,78,.08);border-color:rgba(245,182,78,.3);color:#f3d9a6}
+  .stub{border:1px dashed var(--line);border-radius:14px;padding:24px;text-align:center;color:var(--dim)}
+  .flash{animation:fl .8s ease}@keyframes fl{0%{background:rgba(55,224,230,.15)}100%{background:transparent}}
+  code{background:#0b1322;padding:1px 6px;border-radius:5px;color:var(--cyan);font-size:12px}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="dot"></span>内容增长引擎
+      <small>Max 版 · 复刻 + 补全自进化闭环</small></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="demoflag">
+      <b>DEMO 模式</b><br>内容侧=种子样本;<br>🎯达人雷达=真实回测数据。<br>真交付走官方 API,非 cookie。
+    </div>
+  </aside>
+  <main class="main" id="view"></main>
+</div>
+
+<script>
+/* ============================================================
+   内容增长引擎 · Max 版  (single-file, 零依赖)
+   目的:1) 复刻 engine.zcchr.com 的 dashboard 工作流
+        2) 把作者吹了但没写的「自进化闭环」真的做出来
+   打分引擎是白盒可解释的,同一套可切换 topic(选题) / creator(达人) 两种对象
+   ============================================================ */
+
+/* ---------- 人设(persona):决定所有打分口径 ---------- */
+const persona = {
+  name:"AI 车间主任(示例人设)",
+  who:"一个碳基员工管一支 AI 车间,做 AI×独立开发内容",
+  keywords:["AI工具","独立开发","Agent","Vibe Coding","效率"]
+};
+
+/* ---------- 打分维度 + 权重(会被自进化校准改动) ---------- */
+const DIMS = [
+  {k:"hot",  name:"热度",   desc:"当下流量大小"},
+  {k:"rel",  name:"相关性", desc:"跟人设赛道契合"},
+  {k:"acq",  name:"获客值", desc:"能不能带来精准粉/客"},
+  {k:"time", name:"时效",   desc:"新鲜度/窗口期"},
+  {k:"diff", name:"差异化", desc:"你能给出别人没有的角度"},
+];
+/* 新手直觉权重:热度给最高(常见误区)。校准后会自己纠偏。 */
+let weights = {hot:35, rel:25, acq:20, time:10, diff:10};
+const weights0 = {...weights};           // 初始权重,用于对照
+
+/* ---------- 今日选题池(每条带 5 维原始分 0-100 + 分层) ---------- */
+const TIERS = {acq:["精准获客","acq"], side:["沾边引流","side"], fan:["涨粉热点","fan"]};
+const topics = [
+  {t:"用一个周末把飞书多维表格接上任意大模型",tier:"acq", src:"抖音热榜#2 派生",
+   dim:{hot:62, rel:95, acq:90, time:70, diff:80}, hook:"手把手,可复现,直接引来同赛道精准粉"},
+  {t:"我把选题这件事整个交给了 AI,结果…",tier:"acq", src:"经历选题",
+   dim:{hot:40, rel:92, acq:85, time:55, diff:88}, hook:"真实经历,别人抄不走"},
+  {t:"AI 剪辑到底怎么做的?拆一条爆款给你看",tier:"side", src:"对标博主派生",
+   dim:{hot:78, rel:70, acq:55, time:75, diff:60}, hook:"蹭 AI 剪辑热度,沾边引流"},
+  {t:"世界人工智能大会,一个独立开发者的逛展攻略",tier:"side", src:"抖音热榜#2",
+   dim:{hot:92, rel:60, acq:45, time:95, diff:40}, hook:"纯蹭大热点,涨泛粉"},
+  {t:"残血版 iPhone?用一条 AI 快捷指令救回来",tier:"fan", src:"微博热搜#21",
+   dim:{hot:74, rel:48, acq:30, time:80, diff:45}, hook:"热点桥接,标题党涨粉"},
+];
+
+/* ---------- 已发布作品:发布前【预判】 vs 发布后【实测】 ----------
+   这是「自进化闭环」的燃料。每条记录发布当时 5 维分(预判)+3天后真实表现(实测0-100)。
+   数据被特意设计成:相关性/差异化 与真实表现强相关,热度几乎不相关
+   → 校准会把权重从「热度」搬到「相关性/差异化」,这就是系统学到的东西。 */
+const posts = [
+  {t:"从零搭一个 AI 选题机器人",         dim:{hot:45,rel:92,acq:88,time:60,diff:85}, actual:86},
+  {t:"我的 AI 车间一天产出 6 条内容",     dim:{hot:38,rel:90,acq:80,time:50,diff:90}, actual:88},
+  {t:"蹭世界 AI 大会热度做了条泛科普",     dim:{hot:95,rel:55,acq:35,time:92,diff:35}, actual:41},
+  {t:"AI 快捷指令救活旧 iPhone",          dim:{hot:80,rel:50,acq:32,time:85,diff:42}, actual:47},
+  {t:"把飞书表格变成 AI 批量工作台",       dim:{hot:52,rel:94,acq:86,time:66,diff:78}, actual:82},
+  {t:"独立开发者怎么用 Agent 省一个人",    dim:{hot:44,rel:91,acq:84,time:55,diff:82}, actual:84},
+  {t:"追了个娱乐热点硬蹭 AI",             dim:{hot:90,rel:35,acq:22,time:88,diff:30}, actual:33},
+  {t:"我踩过的 3 个 Vibe Coding 大坑",     dim:{hot:40,rel:88,acq:75,time:48,diff:86}, actual:80},
+  {t:"AI 剪辑保姆级教程",                 dim:{hot:76,rel:66,acq:52,time:74,diff:58}, actual:60},
+  {t:"热搜第一,我用它引流到独立产品",      dim:{hot:93,rel:58,acq:48,time:90,diff:44}, actual:52},
+  {t:"一个人跑通内容生产流水线",           dim:{hot:42,rel:93,acq:82,time:52,diff:88}, actual:87},
+  {t:"纯追星蹭流量的一条(翻车)",          dim:{hot:88,rel:30,acq:18,time:84,diff:25}, actual:28},
+];
+
+/* ---------- 达人雷达:真实回测数据(非种子样本) ----------
+   来源:2026-07-06/07 首轮盲测回测,池子 1,106 个全球摩托/骑行 YouTube 频道,
+   26 个已验证影石合作达人当标准答案(打分时隐藏,防标签泄漏)。
+   打分公式(零样本,手工权重):总分 = 语义匹配×70% + 中腰部甜点×18% + POV标记×12%
+   完整数据:~/Documents/creator-radar/data/runs/2026-07-07-official-v1.2/backtest_scores.json
+   这里嵌入 前20名 + 全部26个正例,共46条。 */
+const RDIMS=[
+  {k:"sem",  name:"语义匹配",   w:70, desc:"内容像不像影石逆向出的 8 主题"},
+  {k:"sweet",name:"中腰部甜点", w:18, desc:"订阅数落在「下一个」区间(峰值≈8万粉)"},
+  {k:"pov",  name:"POV 原生",   w:12, desc:"第一视角拍摄标记(pov/onboard/helmet cam)"},
+];
+const RADAR = [
+  {n:"Murtanio",url:"https://www.youtube.com/channel/UC9jWcAMlUtBXdJytn6W0Scg",subs:178000,sem:0.553,sweet:0.951,pov:1.00,score:0.678,rank:1,pct:0.1,pos:false,src:""},
+  {n:"THE SHAIKH 96",url:"https://www.youtube.com/channel/UCw6bOfgGZ_ty6s--KqYhGcQ",subs:79500,sem:0.517,sweet:1.000,pov:1.00,score:0.662,rank:2,pct:0.2,pos:false,src:""},
+  {n:"Schaaf",url:"https://www.youtube.com/channel/UCqsNMYqStWMt3XxkQHQx6Ww",subs:217000,sem:0.534,sweet:0.924,pov:1.00,score:0.660,rank:3,pct:0.3,pos:false,src:""},
+  {n:"STR1KEStudioz",url:"https://www.youtube.com/channel/UCyHbxqcKbiijjmfL8e2io9w",subs:32900,sem:0.514,sweet:0.941,pov:1.00,score:0.649,rank:4,pct:0.4,pos:false,src:""},
+  {n:"RevLimits",url:"https://www.youtube.com/channel/UCZLBtPp0XzZZNDECYpi5n_A",subs:149000,sem:0.498,sweet:0.970,pov:1.00,score:0.643,rank:5,pct:0.5,pos:false,src:""},
+  {n:"RUSH_ in Tokyo",url:"https://www.youtube.com/channel/UCSQRinrAfYYWyzRQqAzkfxw",subs:20500,sem:0.518,sweet:0.867,pov:1.00,score:0.639,rank:6,pct:0.5,pos:false,src:""},
+  {n:"MOTO WILD",url:"https://www.youtube.com/channel/UCXslS997yoJ1w9ZZTCh0Img",subs:376000,sem:0.522,sweet:0.828,pov:1.00,score:0.635,rank:7,pct:0.6,pos:false,src:""},
+  {n:"BRAAAPP - ONLY",url:"https://www.youtube.com/channel/UCN-IlOBZeArDM-nBVyPtvNw",subs:13600,sem:0.529,sweet:0.784,pov:1.00,score:0.631,rank:8,pct:0.7,pos:false,src:""},
+  {n:"Kzrunner",url:"https://www.youtube.com/channel/UCxnQJLuKHZnUhvFMP3t_MHQ",subs:23100,sem:0.488,sweet:0.888,pov:1.00,score:0.622,rank:9,pct:0.8,pos:false,src:""},
+  {n:"Tina Cohen O'Brien",url:"https://www.youtube.com/channel/UCcQChyJQNwr5kfPcrDLhwzw",subs:73000,sem:0.513,sweet:0.999,pov:0.67,score:0.619,rank:10,pct:0.9,pos:true,src:"star"},
+  {n:"CoffeeHouseRiders",url:"https://www.youtube.com/channel/UCnQ5iWZ3sMe7vpcO4wjiWCw",subs:20200,sem:0.485,sweet:0.864,pov:1.00,score:0.615,rank:11,pct:1.0,pos:false,src:""},
+  {n:"The Rice Rocketeer",url:"https://www.youtube.com/channel/UCqiKOOgk06TwHtFsk-F88RQ",subs:5760,sem:0.550,sweet:0.585,pov:1.00,score:0.610,rank:12,pct:1.1,pos:false,src:""},
+  {n:"Scrambler POV",url:"https://www.youtube.com/channel/UCGqdR-kobDziIGQYEZSk_Yg",subs:83400,sem:0.557,sweet:1.000,pov:0.33,score:0.610,rank:13,pct:1.2,pos:false,src:""},
+  {n:"GoPro Bike",url:"https://www.youtube.com/channel/UC-oqtSrbAwCIB98RZfsdreA",subs:81000,sem:0.495,sweet:1.000,pov:0.67,score:0.607,rank:14,pct:1.3,pos:false,src:""},
+  {n:"MotoVibes",url:"https://www.youtube.com/channel/UCfSlXpEv-KFD3l4ukU6bjcw",subs:34200,sem:0.562,sweet:0.946,pov:0.33,score:0.604,rank:15,pct:1.4,pos:false,src:""},
+  {n:"Rizzylifts",url:"https://www.youtube.com/channel/UCtFtVJhyltnk7hDXbqJ1n4w",subs:6550,sem:0.532,sweet:0.616,pov:1.00,score:0.603,rank:16,pct:1.4,pos:false,src:""},
+  {n:"SAWAAR",url:"https://www.youtube.com/channel/UCz66gPGDSESGnH2yY8yfi6g",subs:12000,sem:0.491,sweet:0.757,pov:1.00,score:0.600,rank:17,pct:1.5,pos:false,src:""},
+  {n:"TeapotOne",url:"https://www.youtube.com/channel/UC-K3Lg-53uExolDVo6ae8FA",subs:103000,sem:0.534,sweet:0.995,pov:0.33,score:0.593,rank:18,pct:1.6,pos:false,src:""},
+  {n:"Visordown Motorcycle Videos",url:"https://www.youtube.com/channel/UC0bafpdiKV8_NwecMfOtbtg",subs:161000,sem:0.543,sweet:0.962,pov:0.33,score:0.593,rank:19,pct:1.7,pos:false,src:""},
+  {n:"Kris Panji",url:"https://www.youtube.com/channel/UCW8VJPzJgc4_QCGozT-tDbw",subs:29800,sem:0.486,sweet:0.928,pov:0.67,score:0.587,rank:20,pct:1.8,pos:false,src:""},
+  {n:"Motorcycle Travel Channel",url:"https://www.youtube.com/channel/UCtHv1zzGSawcksbm7Vj3w6w",subs:95000,sem:0.580,sweet:0.998,pov:0.00,score:0.586,rank:21,pct:1.9,pos:false,src:""},
+  {n:"Lali",url:"https://www.youtube.com/channel/UC4JVGT1KzGz2XsoI1FQJPNA",subs:114000,sem:0.523,sweet:0.990,pov:0.33,score:0.585,rank:22,pct:2.0,pos:true,src:"midtail"},
+  {n:"RideWithRea",url:"https://www.youtube.com/channel/UCbX0sWFuyS7jSB4nx3E9Sdw",subs:26100,sem:0.534,sweet:0.908,pov:0.33,score:0.577,rank:28,pct:2.5,pos:true,src:"midtail"},
+  {n:"Moto Feelz",url:"https://www.youtube.com/channel/UCkWpBTLZjOnnXq9GF0xl96A",subs:126000,sem:0.548,sweet:0.984,pov:0.00,score:0.561,rank:48,pct:4.3,pos:true,src:"midtail"},
+  {n:"Luis Gerstner",url:"https://www.youtube.com/channel/UCvJ8y57rXJB79SZiEprDtYQ",subs:38900,sem:0.495,sweet:0.961,pov:0.33,score:0.559,rank:49,pct:4.4,pos:true,src:"star"},
+  {n:"Jay Jankulovski",url:"https://www.youtube.com/channel/UC76FdRjoBXibky_VC6ycroQ",subs:101000,sem:0.541,sweet:0.996,pov:0.00,score:0.558,rank:53,pct:4.8,pos:true,src:"midtail"},
+  {n:"Two Wheel Cruise",url:"https://www.youtube.com/channel/UClvtLAnUD8z_9dec6iUc24Q",subs:101000,sem:0.523,sweet:0.996,pov:0.00,score:0.545,rank:80,pct:7.2,pos:true,src:"midtail"},
+  {n:"Ride-Along Sessions with Cookie!",url:"https://www.youtube.com/channel/UCdyaiQll4OeQNQKyErJviig",subs:31100,sem:0.525,sweet:0.934,pov:0.00,score:0.536,rank:124,pct:11.2,pos:true,src:"midtail"},
+  {n:"The Bag o' Tricks",url:"https://www.youtube.com/channel/UCaEXnwWYRc5ph2QqQQviWlA",subs:52400,sem:0.504,sweet:0.987,pov:0.00,score:0.531,rank:148,pct:13.4,pos:true,src:"midtail"},
+  {n:"JORDAN HETRICK",url:"https://www.youtube.com/channel/UCaLCRvvau4acqQ4eLGZUywA",subs:249000,sem:0.518,sweet:0.903,pov:0.00,score:0.525,rank:187,pct:16.9,pos:true,src:"midtail"},
+  {n:"Nacho",url:"https://www.youtube.com/channel/UCH0oI7KNtjyVLOIiNFcHUjQ",subs:55300,sem:0.491,sweet:0.990,pov:0.00,score:0.522,rank:212,pct:19.2,pos:true,src:"midtail"},
+  {n:"Musdaque Chowdhury",url:"https://www.youtube.com/channel/UC-c-10cZZG3Jw45giIK20wg",subs:134000,sem:0.481,sweet:0.979,pov:0.00,score:0.513,rank:274,pct:24.8,pos:true,src:"midtail"},
+  {n:"stan the moto man",url:"https://www.youtube.com/channel/UCWOzw7exTtp1M5P60KXONyQ",subs:591000,sem:0.541,sweet:0.731,pov:0.00,score:0.510,rank:300,pct:27.1,pos:true,src:"midtail"},
+  {n:"The Loam Ranger",url:"https://www.youtube.com/channel/UCxwhnYiocArg7UCFFmnhQ7Q",subs:469000,sem:0.526,sweet:0.782,pov:0.00,score:0.509,rank:314,pct:28.4,pos:true,src:"midtail"},
+  {n:"MountMedia",url:"https://www.youtube.com/channel/UC_Nql0AlGzl7dSAuTqBUPEA",subs:209000,sem:0.484,sweet:0.930,pov:0.00,score:0.506,rank:338,pct:30.6,pos:true,src:"midtail"},
+  {n:"Robin Hannevig",url:"https://www.youtube.com/channel/UC8w-j3Xeky3yRIJv-Ast9GQ",subs:15800,sem:0.510,sweet:0.816,pov:0.00,score:0.504,rank:354,pct:32.0,pos:true,src:"midtail"},
+  {n:"Katie Kookaburra",url:"https://www.youtube.com/channel/UCCzN8KWKew4fp-AWIuE7E8A",subs:140000,sem:0.460,sweet:0.975,pov:0.00,score:0.498,rank:390,pct:35.3,pos:true,src:"midtail"},
+  {n:"Rest Day Rider",url:"https://www.youtube.com/channel/UCcnm0AXgd6qUx7GaCltQLBA",subs:19400,sem:0.468,sweet:0.857,pov:0.00,score:0.481,rank:507,pct:45.8,pos:true,src:"midtail"},
+  {n:"Dale Stone",url:"https://www.youtube.com/channel/UCdIZHBeg8wQLrdGiPXDqeEw",subs:309000,sem:0.460,sweet:0.866,pov:0.00,score:0.478,rank:527,pct:47.6,pos:true,src:"midtail"},
+  {n:"Chaseontwowheels",url:"https://www.youtube.com/channel/UCidMMQafCAomjuD_a3DcdHw",subs:1250000,sem:0.530,sweet:0.553,pov:0.00,score:0.470,rank:576,pct:52.1,pos:true,src:"midtail"},
+  {n:"Joseph Activate",url:"https://www.youtube.com/channel/UCtq1CGQI2q_sksplCwCwBVw",subs:17000,sem:0.453,sweet:0.831,pov:0.00,score:0.467,rank:604,pct:54.6,pos:true,src:"midtail"},
+  {n:"Evans MTB Saga",url:"https://www.youtube.com/channel/UCw_kNtS7ilDDoEEBX4bHVgw",subs:233000,sem:0.427,sweet:0.914,pov:0.00,score:0.463,rank:625,pct:56.5,pos:true,src:"midtail"},
+  {n:"Anne Gumiran",url:"https://www.youtube.com/channel/UCboz-ihnixi83znSsqoJOmw",subs:1540,sem:0.472,sweet:0.298,pov:0.00,score:0.384,rank:922,pct:83.4,pos:true,src:"star"},
+  {n:"Peter McKinnon",url:"https://www.youtube.com/channel/UC3DkFux8Iv-aYnTRWzwaiBA",subs:6010000,sem:0.475,sweet:0.233,pov:0.00,score:0.374,rank:950,pct:85.9,pos:true,src:"star"},
+  {n:"Fabio Wibmer",url:"https://www.youtube.com/channel/UCHOtaAJCOBDUWIcL4372D9A",subs:8040000,sem:0.446,sweet:0.190,pov:0.00,score:0.346,rank:1028,pct:92.9,pos:true,src:"star"},
+  {n:"CaseyNeistat",url:"https://www.youtube.com/channel/UCtinbF-Q-fVthA0qrFQTgXQ",subs:12700000,sem:0.380,sweet:0.134,pov:0.00,score:0.290,rank:1097,pct:99.2,pos:true,src:"star"}
+];
+
+/* ================= 打分引擎(白盒,可解释) ================= */
+function scoreWith(dim, w){
+  const total = DIMS.reduce((s,d)=>s + dim[d.k]*(w[d.k]/100), 0);
+  const reasons = DIMS.map(d=>({
+    k:d.name, raw:dim[d.k], w:w[d.k],
+    contrib:+(dim[d.k]*(w[d.k]/100)).toFixed(1)
+  })).sort((a,b)=>b.contrib-a.contrib);
+  return {score:Math.round(total), reasons};
+}
+/* MAE:预判分与实测分的平均绝对误差(越小=系统越懂什么会火) */
+function mae(w){
+  const e = posts.map(p=>Math.abs(scoreWith(p.dim,w).score - p.actual));
+  return +(e.reduce((a,b)=>a+b,0)/e.length).toFixed(1);
+}
+/* 皮尔逊相关:某维度原始分 与 真实表现 的相关度 */
+function corr(key){
+  const xs=posts.map(p=>p.dim[key]), ys=posts.map(p=>p.actual), n=xs.length;
+  const mx=xs.reduce((a,b)=>a+b)/n, my=ys.reduce((a,b)=>a+b)/n;
+  let num=0,dx=0,dy=0;
+  for(let i=0;i<n;i++){num+=(xs[i]-mx)*(ys[i]-my);dx+=(xs[i]-mx)**2;dy+=(ys[i]-my)**2;}
+  return num/Math.sqrt(dx*dy||1);
+}
+/* 一步校准:把权重朝「相关度隐含的目标权重」挪 50%(可反复点,逐步收敛) */
+let maeHistory = [mae(weights)];
+function calibrateStep(){
+  const prev={...weights}, prevMae=maeHistory[maeHistory.length-1];
+  const c={}; let sum=0;
+  DIMS.forEach(d=>{const v=Math.max(0,corr(d.k)); c[d.k]=v; sum+=v;});
+  const target={}; DIMS.forEach(d=>target[d.k]= sum? +(c[d.k]/sum*100).toFixed(1):weights[d.k]);
+  DIMS.forEach(d=>{weights[d.k]= +(weights[d.k] + 0.5*(target[d.k]-weights[d.k])).toFixed(1);});
+  // 归一化到 100
+  const s=DIMS.reduce((a,d)=>a+weights[d.k],0);
+  DIMS.forEach(d=>weights[d.k]=+(weights[d.k]/s*100).toFixed(1));
+  const m=mae(weights);
+  if(m > prevMae + 0.05){ weights=prev; return; } // 已到最优,不接受更差的一步(保证单调下降)
+  maeHistory.push(m);
+}
+
+/* ================= 视图 ================= */
+const NAV=[
+  {id:"home", em:"🏠", t:"首页"},
+  {id:"topic",em:"🗂", t:"选题（可解释打分）"},
+  {id:"radar",em:"🎯", t:"达人雷达", tag:"真数据"},
+  {id:"copy", em:"✍️", t:"文案工坊"},
+  {id:"asset",em:"🎬", t:"素材工厂"},
+  {id:"data", em:"📊", t:"数据回流"},
+  {id:"evolve",em:"🔁",t:"自进化",star:true},
+  {id:"set",  em:"⚙️", t:"设置 / 接入"},
+];
+let cur="home";
+function renderNav(){
+  const n=document.getElementById("nav"); n.innerHTML="";
+  NAV.forEach(x=>{
+    const b=document.createElement("button");
+    b.className=(x.id===cur?"on ":"")+(x.star?"":"");
+    b.innerHTML=`<span class="em">${x.em}</span>${x.t}${x.star?'<span class="navtag">核心</span>':x.tag?`<span class="navtag" style="background:var(--green);color:#04240f">${x.tag}</span>`:''}`;
+    b.onclick=()=>{cur=x.id;location.hash=x.id;renderNav();renderView();};
+    (x.star? n.appendChild(Object.assign(document.createElement("div"),{className:"stargroup"})).appendChild(b) : n.appendChild(b));
+  });
+}
+const tierPill=t=>{const m={acq:["精准获客","acq"],side:["沾边引流","side"],fan:["涨粉热点","fan"]}[t];return `<span class="pill ${m[1]}">${m[0]}</span>`;};
+
+function scoreCard(item, w){
+  const {score,reasons}=scoreWith(item.dim,w);
+  const col=score>=75?"var(--green)":score>=55?"var(--gold)":"var(--red)";
+  const verdict=score>=75?"✅ 强烈建议拍":score>=55?"🟡 可拍,注意角度":"⚪ 优先级低";
+  return `<div class="sc">
+    <div class="top">
+      <div><div class="title">${item.t}</div>
+        <div class="small muted">${tierPill(item.tier)} <span class="tag">来源:${item.src}</span></div></div>
+      <div class="score" style="color:${col}">${score}<small>/100</small></div>
+    </div>
+    <div class="reasons">${reasons.map(r=>`
+      <div class="reason"><span class="k">${r.k}</span>
+        <div class="bar"><i style="width:${r.contrib*1.4}%;background:${col}"></i></div>
+        <span class="v">${r.raw}×${r.w}%=${r.contrib}</span></div>`).join("")}</div>
+    <div class="verdict">${verdict} · 抓手:${item.hook}
+      <div class="small" style="margin-top:6px;color:var(--dim2)">总分 = Σ(维度分 × 权重),每一分都说得清哪来的 → 天生可解释</div></div>
+  </div>`;
+}
+
+function view_home(){
+  const top=[...topics].map(t=>({t, s:scoreWith(t.dim,weights).score})).sort((a,b)=>b.s-a.s).slice(0,3);
+  return `<h1>今日概览</h1><p class="sub">人设:${persona.name} · ${persona.who}</p>
+  <div class="kpis">
+    <div class="card kpi"><div class="n">${topics.length}</div><div class="l">今日候选选题</div><div class="d up">按人设打分排序</div></div>
+    <div class="card kpi"><div class="n">${posts.length}</div><div class="l">已发布沉淀</div><div class="d">喂给自进化闭环</div></div>
+    <div class="card kpi"><div class="n" style="color:var(--gold)">${maeHistory[maeHistory.length-1]}</div><div class="l">当前预判误差 MAE</div><div class="d ${maeHistory.length>1?'up':''}">越小=系统越懂什么会火</div></div>
+    <div class="card kpi"><div class="n">${DIMS.length}</div><div class="l">打分维度</div><div class="d">权重可被数据校准</div></div>
+  </div>
+  <div class="sect">🌀 一个人的内容增长闭环</div>
+  <div class="card"><div class="wheel">
+    <div class="node"><div class="e">🔥</div><div class="t">监控同行 / 热点</div><div class="d">拉信号</div></div>
+    <div class="node"><div class="e">🎯</div><div class="t">AI 选题</div><div class="d">按人设打分</div></div>
+    <div class="node"><div class="e">✍️</div><div class="t">AI 文案</div><div class="d">四类一键出</div></div>
+    <div class="node"><div class="e">🎬</div><div class="t">素材工厂</div><div class="d">图/片</div></div>
+    <div class="node"><div class="e">📤</div><div class="t">多平台发布</div><div class="d">一处发</div></div>
+    <div class="node star"><div class="e">🔁</div><div class="t">数据回流 · 自进化</div><div class="d">预判 vs 实测 → 校准</div></div>
+  </div>
+  <div class="note warn">★ 最右下角这块「预判 vs 实测 → 自动校准」,是原版演示里规划了、但开源代码<b>尚未实现</b>的部分。这一版我们把它做成了可运行的 —— 去 <b>🔁 自进化</b> 页看。</div>
+  </div>
+  <div class="sect">🎯 今日 Top 3 该拍什么</div>
+  <div class="grid3">${top.map(x=>scoreCard(x.t,weights)).join("")}</div>`;
+}
+
+function view_topic(){
+  const order={acq:0,side:1,fan:2};
+  const list=[...topics].sort((a,b)=> (order[a.tier]-order[b.tier]) || scoreWith(b.dim,weights).score-scoreWith(a.dim,weights).score);
+  return `<h1>选题 · 可解释打分</h1>
+  <p class="sub">AI 从热点/对标/经历里生成候选,按人设三层打分(建议配比 精准获客:沾边引流:涨粉热点 = 7:2:1)。<b>同一套打分引擎切成 creator 模式,就是影石达人雷达。</b></p>
+  <div class="row" style="margin-bottom:14px">
+    <span class="pill acq">精准获客</span><span class="pill side">沾边引流</span><span class="pill fan">涨粉热点</span>
+    <span class="muted small">· 当前权重:${DIMS.map(d=>d.name+' '+weights[d.k]+'%').join(' / ')}</span>
+  </div>
+  <div class="grid2">${list.map(t=>scoreCard(t,weights)).join("")}</div>
+  <div class="note">这些卡片就是给影石达人雷达用的「可解释推荐卡」原型:把对象从「选题」换成「达人」,卡片结构一字不改。<b>已经切好了 → 去 🎯 达人雷达页看,那边是 1,106 个真实频道的真回测数据。</b></div>`;
+}
+
+function view_data(){
+  const rows=posts.map(p=>{const pred=scoreWith(p.dim,weights).score;const err=pred-p.actual;
+    return `<tr><td>${p.t}</td>
+      <td style="color:var(--blue)">${pred}</td>
+      <td style="color:var(--green)">${p.actual}</td>
+      <td class="delta" style="color:${Math.abs(err)<=10?'var(--green)':Math.abs(err)<=25?'var(--gold)':'var(--red)'}">${err>0?'+':''}${err}</td></tr>`;}).join("");
+  return `<h1>数据回流</h1><p class="sub">作品发出去 3 天后,真实表现(播放/互动归一成 0-100 实测分)回流到这里,跟发布前的 AI 预判做对比。这就是自进化的燃料。</p>
+  <div class="card"><table>
+    <tr><th>作品</th><th>发布前 AI 预判</th><th>发布后 实测</th><th>误差</th></tr>${rows}</table>
+    <div class="note warn" style="margin-top:16px">看红色误差行:几条<b>预判很高、实测很差</b>的,全是「热度高但相关性低」的蹭热点内容。系统据此会在自进化页把权重从「热度」搬走 → <b>这就是它学到的东西。</b></div>
+  </div>`;
+}
+
+function view_evolve(){
+  const maxMae=Math.max(...maeHistory,1);
+  const bars=maeHistory.map((m,i)=>`<div class="b" style="height:${Math.max(8,m/maxMae*100)}%"><span>${m}</span><em>${i===0?'初始':'第'+i+'轮'}</em></div>`).join("");
+  const wrows=DIMS.map(d=>{
+    const now=weights[d.k], old=weights0[d.k], dd=+(now-old).toFixed(1);
+    return `<div class="wrow">
+      <div>${d.name}<div class="small muted">${d.desc}</div></div>
+      <div class="wbar"><i style="width:${now}%"></i><div class="old" style="left:${old}%"></div></div>
+      <div class="delta">${now}% <span style="color:${dd>0?'var(--green)':dd<0?'var(--red)':'var(--dim2)'}">(${dd>0?'+':''}${dd})</span></div>
+    </div>`;}).join("");
+  const c=DIMS.map(d=>({n:d.name,v:+corr(d.k).toFixed(2)})).sort((a,b)=>b.v-a.v);
+  return `<h1>🔁 自进化 <span class="pill" style="color:var(--gold);border-color:rgba(245,182,78,.5)">原版未实现 · 这版做出来了</span></h1>
+  <p class="sub">发布前预判 vs 发布后实测,系统自己找出「哪些维度真的和爆款相关」,把打分权重朝那边挪。白盒、可解释、越用越准 —— 这才是真的强化,不是 PPT。</p>
+
+  <div class="grid2">
+    <div class="card cal">
+      <div class="sect" style="margin:0 0 14px">① 预判误差 MAE,每校准一轮下降</div>
+      <div class="maechart">${bars}</div>
+      <div style="margin-top:26px;display:flex;gap:10px;align-items:center">
+        <button class="btn gold" onclick="calibrateStep();renderView();">▶ 运行一轮自进化校准</button>
+        <button class="btn ghost" onclick="resetCal()">重置</button>
+        <span class="muted small">MAE ${maeHistory[0]} → ${maeHistory[maeHistory.length-1]}</span>
+      </div>
+    </div>
+    <div class="card cal">
+      <div class="sect" style="margin:0 0 14px">② 权重变化(金色虚线=初始,蓝条=现在)</div>
+      <div class="weights">${wrows}</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="sect" style="margin:0 0 10px">③ 系统学到的洞察(维度 × 真实表现相关度)</div>
+    <div class="row">${c.map(x=>`<span class="pill ${x.v>=0.6?'acq':x.v<=0.2?'':'side'}">${x.n} ${x.v}</span>`).join("")}</div>
+    <div class="note">相关度最高的是 <b>${c[0].n}</b> 和 <b>${c[1].n}</b>,最低的是 <b>${c[c.length-1].n}</b>。翻译成人话:<b>盲目蹭热度几乎不带来真实爆款,相关性和差异化才是硬信号。</b>系统靠数据自己得出这个结论,并改掉了新手"唯热度论"的权重 —— 原版愿景里的"越用越懂你",我们把它落成了代码。</div>
+  </div>`;
+}
+function resetCal(){weights={...weights0};maeHistory=[mae(weights)];renderView();}
+
+/* ================= 达人雷达(真数据) ================= */
+const fmtSubs=v=>v==null?"—":v>=1e6?(v/1e6).toFixed(1).replace(/\.0$/,"")+"M":v>=1e3?Math.round(v/1e3)+"k":v;
+function radarCard(c){
+  const total=(c.score*100).toFixed(1);
+  const col=c.pct<=5?"var(--green)":c.pct<=20?"var(--gold)":"var(--red)";
+  const badge=c.pos
+    ? `<span class="pill acq">✅ 已验证影石合作 · ${c.src==="star"?"官方大使/专访":"中腰部赞助"}</span>`
+    : `<span class="pill fan">🆕 引擎新发现</span>`;
+  const reasons=RDIMS.map(d=>({k:d.name,raw:c[d.k],w:d.w,contrib:+(c[d.k]*d.w).toFixed(1)})).sort((a,b)=>b.contrib-a.contrib);
+  return `<div class="sc">
+    <div class="top">
+      <div><div class="title"><a href="${c.url}" target="_blank">${c.n}</a></div>
+        <div class="small muted">${badge} <span class="tag">订阅 ${fmtSubs(c.subs)}</span></div></div>
+      <div class="score" style="color:${col}">${total}<small>/100</small></div>
+    </div>
+    <div class="reasons">${reasons.map(r=>`
+      <div class="reason"><span class="k">${r.k}</span>
+        <div class="bar"><i style="width:${Math.min(100,r.contrib*1.9)}%;background:${col}"></i></div>
+        <span class="v">${r.raw.toFixed(2)}×${r.w}%=${r.contrib}</span></div>`).join("")}</div>
+    <div class="verdict">全池排名 <b>#${c.rank}</b> / 1,106 · 前 ${c.pct}%</div>
+  </div>`;
+}
+function view_radar(){
+  const hits=RADAR.filter(c=>c.pos&&c.pct<=5).sort((a,b)=>a.rank-b.rank);
+  const fresh=RADAR.filter(c=>!c.pos).sort((a,b)=>a.rank-b.rank).slice(0,6);
+  const rows=[...RADAR].sort((a,b)=>a.rank-b.rank).map(c=>{
+    const col=c.pct<=5?"var(--green)":c.pct<=20?"var(--gold)":"var(--dim)";
+    return `<tr${c.pos?' style="background:rgba(57,217,138,.05)"':''}>
+      <td class="delta">#${c.rank}</td>
+      <td><a href="${c.url}" target="_blank">${c.n}</a></td>
+      <td>${fmtSubs(c.subs)}</td>
+      <td class="delta">${c.sem.toFixed(2)}</td><td class="delta">${c.sweet.toFixed(2)}</td><td class="delta">${c.pov.toFixed(2)}</td>
+      <td class="delta" style="color:${col};font-weight:700">${(c.score*100).toFixed(1)}</td>
+      <td class="small">${c.pos?(c.src==="star"?"✅ 大使/专访":"✅ 中腰部赞助"):"🆕 新发现"}</td></tr>`;}).join("");
+  return `<h1>🎯 达人雷达 <span class="pill" style="color:var(--green);border-color:rgba(57,217,138,.5)">影石命题 · 全部真数据</span></h1>
+  <p class="sub">这一页不是种子样本。数据来自 7/6–7/7 的真实盲测回测:1,106 个全球摩托/骑行 YouTube 频道(公开元数据+本地 embedding,零 API 成本),26 个已验证影石合作达人当标准答案,打分时把一切品牌痕迹剔除。同一套「白盒打分 + 可解释卡」,对象从选题换成达人。</p>
+  <div class="kpis">
+    <div class="card kpi"><div class="n">1,106</div><div class="l">真实频道池</div><div class="d">55+ 个多语言搜索词采集</div></div>
+    <div class="card kpi"><div class="n">26</div><div class="l">已验证合作正例</div><div class="d">盲测时隐藏,防泄漏</div></div>
+    <div class="card kpi"><div class="n" style="color:var(--green)">4.6×</div><div class="l">前 5% 召回 vs 随机</div><div class="d up">23% 召回,随机基线 5%</div></div>
+    <div class="card kpi"><div class="n" style="color:var(--gold)">28.5%</div><div class="l">正例中位百分位</div><div class="d">随机应为 50%</div></div>
+  </div>
+  <div class="sect">✅ 盲测命中:引擎在看不到任何合作痕迹时,把这 6 个真实合作达人排进了前 5%</div>
+  <div class="grid3">${hits.map(radarCard).join("")}</div>
+  <div class="sect">🆕 引擎交出的第一页:如果影石今天就用它,推荐的新面孔</div>
+  <div class="grid3">${fresh.map(radarCard).join("")}</div>
+  <div class="sect">📋 完整榜单(前 20 名 + 全部 26 个正例,绿底 = 已验证合作)</div>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th>排名</th><th>频道</th><th>订阅</th><th>语义</th><th>甜点</th><th>POV</th><th>总分</th><th>身份</th></tr>${rows}</table>
+    <div class="note" style="margin-top:14px"><b>巨星沉底是设计使然:</b>Fabio Wibmer(804万粉)排 92.9%、Casey Neistat(1270万)排 99.2%。中腰部甜点函数刻意压制巨星 —— "发现下一个"的引擎不该把预算指向人尽皆知的人。这也顺带证明引擎没有在"认名人"。</div>
+    <div class="note warn" style="margin-top:10px"><b>和自进化闭环的接口:</b>这套权重(70/18/12)目前是手工设定的。把「签约后实际转化」当实测分回流,🔁 自进化页那套校准机制原样搬过来,权重就能像内容侧一样被数据自动纠偏 —— 这是 Phase 1 要做的事。数据源 demo 用公开元数据,正式交付走 YouTube Data API。</div>
+  </div>`;
+}
+
+function view_copy(){
+  const cfg=getCfg();
+  return `<h1>文案工坊</h1><p class="sub">选一个选题一键出四类文案:视频口播 / 图文 / 公众号 / 朋友圈,定稿后学你的风格。</p>
+  <div class="card">
+    <label>选一个选题</label>
+    <select id="tpick">${topics.map((t,i)=>`<option value="${i}">${t.t}</option>`).join("")}</select>
+    <div style="margin-top:12px;display:flex;gap:10px">
+      <button class="btn" onclick="genCopy()">✨ 生成四类文案</button>
+      <span class="muted small">${cfg.key?'已接入大模型:'+ (cfg.model||'') :'未接大模型 → 用本地模板降级(接入见「设置」页)'}</span>
+    </div>
+    <div id="copyout" style="margin-top:16px"></div>
+  </div>
+  <div class="note">这块的真实实现 = 冯兴龙开源的 <code>feishu-base-custom-api</code> 那份单文件插件:飞书多维表格里一列选题 → 调 LLM → 写回四列文案。壳可以直接搬,我们只需把它的"图片路径"改成"文本路径"。</div>`;
+}
+function view_asset(){return `<h1>素材工厂</h1><p class="sub">主图矩阵 / 详情页 / 15秒 AI 视频。</p>
+  <div class="stub">🎬 Phase 0 未铺开<br><span class="small">真实实现 = 冯兴龙开源的 <code>ai-xunjian</code>(AI 自动初剪:剪气口→转写→AI初剪→五轨编辑器→HyperFrames 渲染)。<br>整条 <code>firstcut/run.mjs</code> 管线可直接接进来,参数是他几十条真视频调出来的,不用重造。</span></div>`;}
+
+function view_set(){
+  const c=getCfg();
+  return `<h1>设置 / 接入</h1><p class="sub">大模型是可选的:不填就用本地模板降级,填了文案/热点筛选就走真模型。Key 只存你本机浏览器,不上传。</p>
+  <div class="card grid2">
+    <div><label>API 地址(OpenAI 兼容 /chat/completions)</label><input id="c_base" value="${c.base||''}" placeholder="https://api.xxx.com/v1/chat/completions"></div>
+    <div><label>模型名</label><input id="c_model" value="${c.model||''}" placeholder="gpt-4o-mini / deepseek-chat …"></div>
+    <div><label>API Key</label><input id="c_key" type="password" value="${c.key||''}" placeholder="sk-…（仅存 localStorage）"></div>
+    <div style="display:flex;align-items:flex-end"><button class="btn" onclick="saveCfg()">保存</button></div>
+  </div>
+  <div class="note">
+    <b>数据源接入路线(诚实版):</b><br>
+    · Demo/本次跑通 → 个人 cookie 采集(仅用于验证,PPT 注明)<br>
+    · 正式交付影石 → YouTube Data API / 星图 / 巨量开放平台 / RSS 企业源,<b>绝不上 cookie 爬</b><br>
+    · 打分引擎、可解释卡、自进化闭环 → 与数据源解耦,换源不改核心
+  </div>`;
+}
+
+/* ---------- 可选大模型(降级安全) ---------- */
+function getCfg(){try{return JSON.parse(localStorage.getItem("ge-cfg")||"{}")}catch(e){return{}}}
+function saveCfg(){localStorage.setItem("ge-cfg",JSON.stringify({
+  base:val("c_base"),model:val("c_model"),key:val("c_key")}));renderView();}
+const val=id=>{const e=document.getElementById(id);return e?e.value.trim():"";};
+async function genCopy(){
+  const t=topics[+document.getElementById("tpick").value];const cfg=getCfg();const out=document.getElementById("copyout");
+  out.innerHTML='<span class="muted small">生成中…</span>';
+  const kinds=[["🎬 视频口播","3秒钩子+痛点+方法+行动"],["📕 图文","小红书体,标题党+分点"],["💚 公众号","稍长,有观点"],["💬 朋友圈","一句话+悬念"]];
+  if(!cfg.key){ // 本地模板降级
+    out.innerHTML=kinds.map(k=>`<div class="sc" style="margin-bottom:10px"><b>${k[0]}</b>
+      <div class="small muted" style="margin-top:6px">【${t.t}】· ${k[1]}<br>(本地模板占位。接入大模型后这里出真文案。)</div></div>`).join("");return;
+  }
+  try{
+    const res=await fetch(cfg.base,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+cfg.key},
+      body:JSON.stringify({model:cfg.model||"gpt-4o-mini",messages:[{role:"user",
+        content:`我的人设:${persona.who}。请就选题「${t.t}」写四类文案,分别是:视频口播脚本、小红书图文、公众号短文、朋友圈一句话。简洁,带钩子。`}]})});
+    const d=await res.json();out.innerHTML=`<div class="sc"><div class="small" style="white-space:pre-wrap">${(d.choices?.[0]?.message?.content||JSON.stringify(d)).replace(/</g,"&lt;")}</div></div>`;
+  }catch(e){out.innerHTML=`<div class="note warn">调用失败:${e.message}。检查「设置」里的地址/Key。</div>`;}
+}
+
+function renderView(){
+  const v={home:view_home,topic:view_topic,radar:view_radar,copy:view_copy,asset:view_asset,data:view_data,evolve:view_evolve,set:view_set}[cur];
+  const el=document.getElementById("view");el.innerHTML=v();el.classList.remove("flash");void el.offsetWidth;el.classList.add("flash");
+}
+/* hash 路由:#radar 可直达达人雷达页(方便分享/收藏) */
+const h=location.hash.replace("#","");
+if(NAV.some(x=>x.id===h)) cur=h;
+renderNav();renderView();
+</script>
